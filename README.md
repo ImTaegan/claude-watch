@@ -16,4 +16,4 @@ agent across your terminals over Bluetooth LE.
 - Hold Button B at boot for a self-test color cycle
 
 ## Architecture
-hooks (curl, 1s timeout) -> daemon (127.0.0.1:7459, aggregates) -> BLE -> watch
+hooks (python3/urllib, 1s timeout) -> daemon (127.0.0.1:7459, aggregates) -> BLE -> watch
