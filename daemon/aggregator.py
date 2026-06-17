@@ -29,3 +29,25 @@ class SessionRegistry:
             "state": EVENT_TO_STATE[event],
             "last_seen": now,
         }
+
+    def aggregate(self, max_sessions=5):
+        counts = {IDLE: 0, RUNNING: 0, DONE: 0, NEEDS_INPUT: 0}
+        for s in self._sessions.values():
+            counts[s["state"]] += 1
+        ordered = sorted(
+            self._sessions.values(),
+            key=lambda s: (s["state"], s["last_seen"]),
+            reverse=True,
+        )
+        top = ordered[0]["project"] if ordered else ""
+        return {
+            "u": counts[NEEDS_INPUT],
+            "r": counts[RUNNING],
+            "d": counts[DONE],
+            "i": counts[IDLE],
+            "top": top,
+            "sessions": [
+                {"project": s["project"], "state": s["state"]}
+                for s in ordered[:max_sessions]
+            ],
+        }
