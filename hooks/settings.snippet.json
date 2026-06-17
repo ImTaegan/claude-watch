@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "Notification": [
+      { "hooks": [ { "type": "command", "command": "EVENT=needs_input python3 -c 'import sys,os,json,urllib.request as u; d=json.load(sys.stdin); body=json.dumps({\"session_id\":d.get(\"session_id\",\"?\"),\"cwd\":d.get(\"cwd\",\"\"),\"event\":os.environ[\"EVENT\"]}).encode(); req=u.Request(\"http://127.0.0.1:7459/event\",data=body,method=\"POST\");\nimport socket;\ntry: u.urlopen(req,timeout=1)\nexcept Exception: pass' 2>/dev/null || true" } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "EVENT=done python3 -c 'import sys,os,json,urllib.request as u; d=json.load(sys.stdin); body=json.dumps({\"session_id\":d.get(\"session_id\",\"?\"),\"cwd\":d.get(\"cwd\",\"\"),\"event\":os.environ[\"EVENT\"]}).encode(); req=u.Request(\"http://127.0.0.1:7459/event\",data=body,method=\"POST\")\ntry: u.urlopen(req,timeout=1)\nexcept Exception: pass' 2>/dev/null || true" } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "EVENT=running python3 -c 'import sys,os,json,urllib.request as u; d=json.load(sys.stdin); body=json.dumps({\"session_id\":d.get(\"session_id\",\"?\"),\"cwd\":d.get(\"cwd\",\"\"),\"event\":os.environ[\"EVENT\"]}).encode(); req=u.Request(\"http://127.0.0.1:7459/event\",data=body,method=\"POST\")\ntry: u.urlopen(req,timeout=1)\nexcept Exception: pass' 2>/dev/null || true" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "EVENT=running python3 -c 'import sys,os,json,urllib.request as u; d=json.load(sys.stdin); body=json.dumps({\"session_id\":d.get(\"session_id\",\"?\"),\"cwd\":d.get(\"cwd\",\"\"),\"event\":os.environ[\"EVENT\"]}).encode(); req=u.Request(\"http://127.0.0.1:7459/event\",data=body,method=\"POST\")\ntry: u.urlopen(req,timeout=1)\nexcept Exception: pass' 2>/dev/null || true" } ] }
+    ],
+    "SessionEnd": [
+      { "hooks": [ { "type": "command", "command": "EVENT=ended python3 -c 'import sys,os,json,urllib.request as u; d=json.load(sys.stdin); body=json.dumps({\"session_id\":d.get(\"session_id\",\"?\"),\"cwd\":d.get(\"cwd\",\"\"),\"event\":os.environ[\"EVENT\"]}).encode(); req=u.Request(\"http://127.0.0.1:7459/event\",data=body,method=\"POST\")\ntry: u.urlopen(req,timeout=1)\nexcept Exception: pass' 2>/dev/null || true" } ] }
+    ]
+  }
+}
