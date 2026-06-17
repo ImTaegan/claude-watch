@@ -28,6 +28,7 @@ class AppState:
         self.latest_payload = None
         self.dirty = None   # asyncio.Event, set in main()
         self.loop = None
+        self.lock = threading.Lock()
 
 
 def make_handler(state, idle_timeout):
@@ -40,13 +41,14 @@ def make_handler(state, idle_timeout):
             raw = self.rfile.read(length)
             now = time.time()
             try:
-                state.registry.gc(now, idle_timeout)
-                payload = handle_event_body(state.registry, raw, now)
+                with state.lock:
+                    state.registry.gc(now, idle_timeout)
+                    payload = handle_event_body(state.registry, raw, now)
+                    state.latest_payload = payload
             except Exception:
                 self.send_response(400)
                 self.end_headers()
                 return
-            state.latest_payload = payload
             state.loop.call_soon_threadsafe(state.dirty.set)
             self.send_response(204)
             self.end_headers()
@@ -108,8 +110,7 @@ def main():
     if args.mock:
         asyncio.run(run(args, mock_writer))
         return
-    # real BLE path (Task 6)
-    from ble import make_ble_writer
+    # real BLE path
     asyncio.run(_run_ble(args))
 
 

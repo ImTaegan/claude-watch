@@ -35,7 +35,7 @@ def _load_address(args):
         return args.address
     cfg = Path(args.config)
     if cfg.exists():
-        data = tomllib.loads(cfg.read_text())
+        data = tomllib.loads(cfg.read_text(encoding="utf-8"))
         if data.get("address"):
             return data["address"]
     raise SystemExit("No watch address. Run with --scan first, or pass --address.")
@@ -43,15 +43,18 @@ def _load_address(args):
 
 async def make_ble_writer(args):
     address = _load_address(args)
-    client = BleakClient(address)
+    state = {"client": None}
     backoff = {"delay": 1.0}
 
     async def ensure_connected():
-        if client.is_connected:
+        c = state["client"]
+        if c is not None and c.is_connected:
             return
         while True:
             try:
-                await client.connect()
+                c = BleakClient(address)
+                await c.connect()
+                state["client"] = c
                 print(f"[ble] connected to {address}", file=sys.stderr)
                 backoff["delay"] = 1.0
                 return
@@ -64,6 +67,6 @@ async def make_ble_writer(args):
     async def writer(payload):
         await ensure_connected()
         data = json.dumps(payload, separators=(",", ":")).encode()
-        await client.write_gatt_char(STATUS_UUID, data, response=False)
+        await state["client"].write_gatt_char(STATUS_UUID, data, response=False)
 
     return writer

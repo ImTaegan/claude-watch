@@ -1,7 +1,6 @@
 """HTTP event-body parsing. Pure (mutates the passed registry); no IO/BLE."""
 import json
 import os
-from aggregator import SessionRegistry
 
 
 def project_from_cwd(cwd):
