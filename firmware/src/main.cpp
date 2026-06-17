@@ -127,10 +127,41 @@ void render() {
   else renderSummary();
 }
 
+int g_lastUrgent = -1;
+bool g_wasConnected = true;
+
+void renderDisconnected() {
+  M5.Display.fillScreen(M5.Display.color565(80, 0, 0));
+  M5.Display.setTextColor(TFT_WHITE, M5.Display.color565(80, 0, 0));
+  M5.Display.setTextSize(2);
+  M5.Display.setCursor(6, 100);
+  M5.Display.print("disconnected");
+}
+
+void flashNeedsInput() {
+  M5.Display.fillScreen(TFT_WHITE);
+  delay(120);
+}
+
+void selfTest() {
+  int seq[] = {ST_IDLE, ST_RUNNING, ST_DONE, ST_NEEDS};
+  for (int k = 0; k < 4; k++) {
+    uint16_t bg = stateColor(seq[k]);
+    M5.Display.fillScreen(bg);
+    M5.Display.setTextColor(TFT_BLACK, bg);
+    M5.Display.setTextSize(2);
+    M5.Display.setCursor(6, 110);
+    M5.Display.print(stateLabel(seq[k]));
+    delay(700);
+  }
+}
+
 void setup() {
   auto cfg = M5.config();
   M5.begin(cfg);
   M5.Display.setRotation(0);
+  M5.update();
+  if (M5.BtnB.isPressed()) selfTest();
   renderSummary();
 
   NimBLEDevice::init("ClaudeWatch");
@@ -148,8 +179,16 @@ void setup() {
 
 void loop() {
   M5.update();
+
+  if (g_connected != g_wasConnected) {
+    g_wasConnected = g_connected;
+    if (g_connected) render();
+    else renderDisconnected();
+  }
+
   if (M5.BtnA.wasPressed()) { g_view = 1; render(); }
   if (M5.BtnB.wasPressed()) { g_view = 0; render(); }
+
   char rx[256];
   bool have = false;
   portENTER_CRITICAL(&g_mux);
@@ -157,7 +196,12 @@ void loop() {
   portEXIT_CRITICAL(&g_mux);
   if (have) {
     parseStatus(rx);
-    render();
+    int urgent = mostUrgent();
+    if (urgent == ST_NEEDS && g_lastUrgent != ST_NEEDS && g_view == 0) {
+      flashNeedsInput();
+    }
+    g_lastUrgent = urgent;
+    if (g_connected) render();
   }
   delay(20);
 }
