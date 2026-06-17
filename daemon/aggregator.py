@@ -51,3 +51,12 @@ class SessionRegistry:
                 for s in ordered[:max_sessions]
             ],
         }
+
+    def gc(self, now, idle_timeout):
+        stale = [
+            sid for sid, s in self._sessions.items()
+            if now - s["last_seen"] > idle_timeout
+        ]
+        for sid in stale:
+            del self._sessions[sid]
+        return stale

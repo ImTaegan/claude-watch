@@ -46,3 +46,12 @@ def test_aggregate_truncates_to_max():
     assert len(agg["sessions"]) == 5
     # most recent running first (last_seen desc within same state)
     assert agg["sessions"][0]["project"] == "p7"
+
+def test_gc_removes_stale_only():
+    r = SessionRegistry()
+    r.update("old", "p1", "running", now=0.0)
+    r.update("fresh", "p2", "running", now=100.0)
+    removed = r.gc(now=200.0, idle_timeout=150.0)
+    assert removed == ["old"]
+    assert "old" not in r._sessions
+    assert "fresh" in r._sessions
