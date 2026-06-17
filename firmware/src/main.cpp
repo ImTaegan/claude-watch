@@ -99,6 +99,34 @@ void renderSummary() {
   M5.Display.printf("R%d N%d D%d", g_status.r, g_status.u, g_status.d);
 }
 
+int g_view = 0;  // 0 = summary, 1 = detail
+
+void renderDetail() {
+  M5.Display.fillScreen(TFT_BLACK);
+  M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+  M5.Display.setTextSize(2);
+  M5.Display.setCursor(4, 4);
+  M5.Display.print("Sessions");
+  int y = 36;
+  for (int k = 0; k < g_status.n; k++) {
+    M5.Display.setTextColor(stateColor(g_status.pstate[k]), TFT_BLACK);
+    M5.Display.setCursor(4, y);
+    M5.Display.printf("%s:%s", g_status.proj[k].c_str(),
+                      stateLabel(g_status.pstate[k]));
+    y += 34;
+  }
+  if (g_status.n == 0) {
+    M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+    M5.Display.setCursor(4, y);
+    M5.Display.print("(none)");
+  }
+}
+
+void render() {
+  if (g_view == 1) renderDetail();
+  else renderSummary();
+}
+
 void setup() {
   auto cfg = M5.config();
   M5.begin(cfg);
@@ -120,6 +148,8 @@ void setup() {
 
 void loop() {
   M5.update();
+  if (M5.BtnA.wasPressed()) { g_view = 1; render(); }
+  if (M5.BtnB.wasPressed()) { g_view = 0; render(); }
   char rx[256];
   bool have = false;
   portENTER_CRITICAL(&g_mux);
@@ -127,7 +157,7 @@ void loop() {
   portEXIT_CRITICAL(&g_mux);
   if (have) {
     parseStatus(rx);
-    renderSummary();
+    render();
   }
   delay(20);
 }
