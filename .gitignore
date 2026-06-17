@@ -1,0 +1,6 @@
+daemon/.venv/
+__pycache__/
+*.pyc
+.pio/
+config.toml
+.DS_Store
