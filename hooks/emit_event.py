@@ -48,6 +48,21 @@ def _tty():
     return None
 
 
+def _repo_root(cwd):
+    """The git repo root for cwd, so the project label is the repo name
+    (stable across subdirectories) rather than whatever folder a tool ran in."""
+    if not cwd:
+        return None
+    try:
+        out = subprocess.run(
+            ["git", "-C", cwd, "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=1,
+        ).stdout.strip()
+        return out or None
+    except Exception:
+        return None
+
+
 def main():
     event = sys.argv[1] if len(sys.argv) > 1 else "running"
     try:
@@ -55,11 +70,15 @@ def main():
     except Exception:
         data = {}
 
+    cwd = data.get("cwd", "")
+    root = _repo_root(cwd) or cwd
     payload = {
         "session_id": data.get("session_id", "?"),
-        "cwd": data.get("cwd", ""),
+        "cwd": root,
         "event": event,
     }
+    if root:
+        payload["project"] = os.path.basename(root.rstrip("/")) or root
     tool = data.get("tool_name")
     if tool:
         payload["tool"] = tool
