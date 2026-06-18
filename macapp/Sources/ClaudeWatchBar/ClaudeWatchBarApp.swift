@@ -1,7 +1,6 @@
 import SwiftUI
 import ClaudeWatchKit
 
-@main
 struct ClaudeWatchBarApp: App {
     @StateObject private var model = StatusModel()
 

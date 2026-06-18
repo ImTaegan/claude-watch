@@ -3,6 +3,17 @@ import ClaudeWatchKit
 
 struct PanelView: View {
     @ObservedObject var model: StatusModel
+    /// Offscreen renderers (ImageRenderer) don't draw ScrollView content;
+    /// snapshots set this false to render the rows in a plain stack.
+    var scrolls = true
+
+    private var agentList: some View {
+        VStack(spacing: 2) {
+            ForEach(Array(model.payload.agents.enumerated()), id: \.offset) { _, agent in
+                AgentRow(agent: agent)
+            }
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -18,15 +29,11 @@ struct PanelView: View {
                     .font(.callout)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 14)
+            } else if scrolls {
+                ScrollView { agentList }
+                    .frame(maxHeight: 280)
             } else {
-                ScrollView {
-                    VStack(spacing: 2) {
-                        ForEach(Array(model.payload.agents.enumerated()), id: \.offset) { _, agent in
-                            AgentRow(agent: agent)
-                        }
-                    }
-                }
-                .frame(maxHeight: 280)
+                agentList
             }
             Divider().opacity(0.4)
             HStack(spacing: 6) {
