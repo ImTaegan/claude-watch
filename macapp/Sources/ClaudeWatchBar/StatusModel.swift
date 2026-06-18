@@ -6,6 +6,9 @@ final class StatusModel: ObservableObject {
     @Published var payload = StatusPayload(counts: Counts(), agents: [])
     @Published var connected = false
 
+    private var lastStates: [String: AgentState] = [:]
+    private var hasBaseline = false
+
     private let url = URL(string: "http://127.0.0.1:7459/status")!
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
@@ -35,11 +38,27 @@ final class StatusModel: ObservableObject {
                 connected = false
                 return
             }
-            payload = try decoder.decode(StatusPayload.self, from: data)
+            let decoded = try decoder.decode(StatusPayload.self, from: data)
+            fireTransitions(decoded.agents)
+            payload = decoded
             connected = true
         } catch {
             connected = false
         }
+    }
+
+    /// Fire a notification when an agent newly enters needs-input or done.
+    private func fireTransitions(_ agents: [Agent]) {
+        let events = detectTransitions(old: lastStates, new: agents,
+                                       hasBaseline: hasBaseline)
+        for e in events {
+            switch e {
+            case .needsInput(let project): Notifier.needsInput(project: project)
+            case .done(let project): Notifier.done(project: project)
+            }
+        }
+        lastStates = stateMap(agents)
+        hasBaseline = true
     }
 
     var worstState: AgentState? {

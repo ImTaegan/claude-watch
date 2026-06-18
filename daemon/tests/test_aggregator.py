@@ -54,6 +54,7 @@ def test_status_counts_and_order():
     st = r.status(now=105.0)
     assert st["counts"] == {"needs_input": 1, "running": 1, "done": 0, "idle": 0}
     assert [a["project"] for a in st["agents"]] == ["projB", "projA"]
+    assert st["agents"][0]["id"] == "s2"
     assert st["agents"][0]["state"] == 3
     assert st["agents"][0]["age_seconds"] == 4.0
     assert st["agents"][1]["age_seconds"] == 5.0

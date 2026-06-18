@@ -11,16 +11,16 @@ enum Snapshot {
         model.payload = StatusPayload(
             counts: Counts(needsInput: 1, running: 2, done: 1, idle: 1),
             agents: [
-                Agent(project: "compile-me", state: 3, ageSeconds: 8,
+                Agent(id: "a", project: "compile-me", state: 3, ageSeconds: 8,
                       tool: "Bash", term: "iTerm.app", tty: "/dev/ttys003",
                       waitingSeconds: 222),
-                Agent(project: "claude-watchh", state: 1, ageSeconds: 142,
+                Agent(id: "b", project: "claude-watchh", state: 1, ageSeconds: 142,
                       tool: "Edit", term: "vscode"),
-                Agent(project: "growth-saloon", state: 1, ageSeconds: 17,
+                Agent(id: "c", project: "growth-saloon", state: 1, ageSeconds: 17,
                       tool: "Bash", term: "iTerm.app"),
-                Agent(project: "gs-referral", state: 2, ageSeconds: 4,
+                Agent(id: "d", project: "gs-referral", state: 2, ageSeconds: 4,
                       tool: "Read", term: "Apple_Terminal"),
-                Agent(project: "watch-firmware", state: 0, ageSeconds: 905,
+                Agent(id: "e", project: "watch-firmware", state: 0, ageSeconds: 905,
                       tool: "Grep"),
             ]
         )

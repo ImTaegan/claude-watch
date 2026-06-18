@@ -27,7 +27,8 @@ public struct Counts: Codable, Equatable, Sendable {
     }
 }
 
-public struct Agent: Codable, Equatable, Sendable {
+public struct Agent: Codable, Equatable, Sendable, Identifiable {
+    public let id: String
     public let project: String
     public let state: Int
     public let ageSeconds: Double
@@ -36,9 +37,10 @@ public struct Agent: Codable, Equatable, Sendable {
     public let tty: String?
     public let waitingSeconds: Double?
 
-    public init(project: String, state: Int, ageSeconds: Double,
+    public init(id: String = "", project: String, state: Int, ageSeconds: Double,
                 tool: String? = nil, term: String? = nil, tty: String? = nil,
                 waitingSeconds: Double? = nil) {
+        self.id = id
         self.project = project
         self.state = state
         self.ageSeconds = ageSeconds

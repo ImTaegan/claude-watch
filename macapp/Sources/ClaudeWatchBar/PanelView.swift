@@ -9,7 +9,7 @@ struct PanelView: View {
 
     private var agentList: some View {
         VStack(spacing: 2) {
-            ForEach(Array(model.payload.agents.enumerated()), id: \.offset) { _, agent in
+            ForEach(model.payload.agents) { agent in
                 AgentRow(agent: agent)
             }
         }

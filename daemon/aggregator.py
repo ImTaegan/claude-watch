@@ -76,8 +76,8 @@ class SessionRegistry:
         for s in self._sessions.values():
             counts[s["state"]] += 1
         ordered = sorted(
-            self._sessions.values(),
-            key=lambda s: (s["state"], s["last_seen"]),
+            self._sessions.items(),
+            key=lambda kv: (kv[1]["state"], kv[1]["last_seen"]),
             reverse=True,
         )
         return {
@@ -89,6 +89,7 @@ class SessionRegistry:
             },
             "agents": [
                 {
+                    "id": sid,
                     "project": s["project"],
                     "state": s["state"],
                     "age_seconds": round(now - s["last_seen"], 1),
@@ -98,7 +99,7 @@ class SessionRegistry:
                     "waiting_seconds": (round(now - s["waiting_since"], 1)
                                         if s.get("waiting_since") else None),
                 }
-                for s in ordered
+                for sid, s in ordered
             ],
         }
 

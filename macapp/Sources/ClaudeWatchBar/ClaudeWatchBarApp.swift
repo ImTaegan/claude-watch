@@ -8,7 +8,12 @@ struct ClaudeWatchBarApp: App {
         MenuBarExtra {
             PanelView(model: model)
         } label: {
-            Image(systemName: iconName)
+            if model.payload.counts.needsInput > 0 {
+                // Show the count right in the menu bar so you don't have to open it.
+                Label("\(model.payload.counts.needsInput)", systemImage: "bell.badge.fill")
+            } else {
+                Image(systemName: iconName)
+            }
         }
         .menuBarExtraStyle(.window)
     }
