@@ -23,6 +23,7 @@ final class AppSettings: ObservableObject {
     }
 
     private let defaults = UserDefaults.standard
+    private var applyingLaunch = false
 
     init() {
         notificationsEnabled = defaults.object(forKey: "notificationsEnabled") as? Bool ?? true
@@ -34,6 +35,9 @@ final class AppSettings: ObservableObject {
     }
 
     private func applyLaunchAtLogin(_ on: Bool) {
+        guard !applyingLaunch else { return }  // ignore the revert's re-entrant didSet
+        applyingLaunch = true
+        defer { applyingLaunch = false }
         do {
             if on {
                 try SMAppService.mainApp.register()
@@ -42,6 +46,7 @@ final class AppSettings: ObservableObject {
             }
         } catch {
             // Reflect what actually happened rather than the requested value.
+            // The guard above makes this assignment's didSet a no-op.
             let actual = (SMAppService.mainApp.status == .enabled)
             if actual != launchAtLogin { launchAtLogin = actual }
         }

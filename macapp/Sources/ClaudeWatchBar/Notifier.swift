@@ -31,7 +31,11 @@ enum Notifier {
     }
 
     private static func escape(_ s: String) -> String {
+        // AppleScript string literals can't contain raw newlines, and quotes/
+        // backslashes must be escaped or the notification silently fails.
         s.replacingOccurrences(of: "\\", with: "\\\\")
          .replacingOccurrences(of: "\"", with: "\\\"")
+         .replacingOccurrences(of: "\n", with: " ")
+         .replacingOccurrences(of: "\r", with: " ")
     }
 }

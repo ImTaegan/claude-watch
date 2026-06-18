@@ -42,14 +42,22 @@ def make_handler(state, idle_timeout):
                 self.end_headers()
                 return
             now = time.time()
-            with state.lock:
-                state.registry.gc(now, idle_timeout)
-                body = json.dumps(state.registry.status(now)).encode()
+            try:
+                with state.lock:
+                    state.registry.gc(now, idle_timeout)
+                    body = json.dumps(state.registry.status(now)).encode()
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+                return
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except Exception:
+                pass  # client hung up after headers; nothing to recover
 
         def do_POST(self):
             length = int(self.headers.get("Content-Length", 0))

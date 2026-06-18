@@ -20,8 +20,11 @@ final class StatusModel: ObservableObject {
         start()
     }
 
+    private var pollTask: Task<Void, Never>?
+
     func start() {
-        Task { @MainActor in
+        guard pollTask == nil else { return }  // idempotent: one loop only
+        pollTask = Task { @MainActor in
             while !Task.isCancelled {
                 await fetch()
                 try? await Task.sleep(for: .seconds(1))
@@ -57,7 +60,10 @@ final class StatusModel: ObservableObject {
             case .done(let project): Notifier.done(project: project)
             }
         }
-        lastStates = stateMap(agents)
+        // Merge (don't replace): if an agent momentarily drops out of a poll
+        // and returns in the same state, we must not treat it as a new
+        // transition and re-notify. Absent agents keep their last-known state.
+        for a in agents { lastStates[a.id] = a.agentState }
         hasBaseline = true
     }
 

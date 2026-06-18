@@ -39,4 +39,20 @@ final class TerminalFocusTests: XCTestCase {
         XCTAssertEqual(terminalFocusScript(term: "iTerm.app", tty: nil),
                        "if application \"iTerm\" is running then tell application \"iTerm\" to activate")
     }
+
+    func testUnsafeTTYIsRejectedAndFallsBackToActivate() {
+        // An injection attempt must not reach the AppleScript literal.
+        let evil = "/dev/ttys003\" then do shell script \"open -a Calculator"
+        let s = terminalFocusScript(term: "iTerm.app", tty: evil)
+        XCTAssertEqual(s, "if application \"iTerm\" is running then tell application \"iTerm\" to activate")
+        XCTAssertFalse(s!.contains("do shell script"))
+    }
+
+    func testSafeTTYValidation() {
+        XCTAssertTrue(isSafeTTY("/dev/ttys003"))
+        XCTAssertTrue(isSafeTTY("/dev/tty"))
+        XCTAssertFalse(isSafeTTY("/dev/ttys003\""))
+        XCTAssertFalse(isSafeTTY("ttys003"))
+        XCTAssertFalse(isSafeTTY("/dev/ttys 003"))
+    }
 }

@@ -5,11 +5,21 @@ import Foundation
 /// VS Code (no AppleScript access to integrated terminals) we just activate the
 /// editor. Every branch is guarded by `is running` so we never launch a
 /// terminal the user doesn't actually use. Returns nil when nothing can be done.
-public func terminalFocusScript(term: String?, tty: String?) -> String? {
+/// A real tty device is "/dev/tty…" with only alphanumerics after. Anything
+/// else can't be a tty we'd match on, and refusing it keeps unexpected input
+/// from being interpolated into the AppleScript literal.
+func isSafeTTY(_ tty: String) -> Bool {
+    guard tty.hasPrefix("/dev/"), tty.count <= 64 else { return false }
+    let rest = tty.dropFirst("/dev/".count)
+    return !rest.isEmpty && rest.allSatisfy { $0.isLetter || $0.isNumber }
+}
+
+public func terminalFocusScript(term: String?, tty rawTTY: String?) -> String? {
     if term == "vscode" {
         return guarded(bundleId: "com.microsoft.VSCode", "activate")
     }
 
+    let tty = rawTTY.flatMap { isSafeTTY($0) ? $0 : nil }
     guard let tty, !tty.isEmpty else {
         switch term {
         case "iTerm.app": return guarded(app: "iTerm", "activate")
