@@ -36,6 +36,7 @@ What it does:
 - **Stuck detection**: an agent waiting on you 5+ minutes turns red so you don't forget it.
 - **Click to focus**: click any row to jump to that agent's terminal tab (iTerm/Terminal by tty; VS Code is brought forward).
 - **Animation**: running agents shimmer, waiting agents pulse.
+- **Settings** (gear in the footer): toggle notifications, sound, and launch-at-login.
 
 How it works: the app polls `GET http://127.0.0.1:7459/status` once per second and
 shows "daemon offline" when it can't reach the daemon. The daemon serves this

@@ -3,9 +3,11 @@ import ClaudeWatchKit
 
 struct PanelView: View {
     @ObservedObject var model: StatusModel
+    @ObservedObject var settings: AppSettings
     /// Offscreen renderers (ImageRenderer) don't draw ScrollView content;
     /// snapshots set this false to render the rows in a plain stack.
     var scrolls = true
+    @State private var showSettings = false
 
     private var agentList: some View {
         VStack(spacing: 2) {
@@ -37,14 +39,26 @@ struct PanelView: View {
             } else {
                 agentList
             }
+            if showSettings {
+                SettingsView(settings: settings)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
             Divider().opacity(0.4)
-            HStack(spacing: 6) {
+            HStack(spacing: 10) {
                 Circle()
                     .fill(model.connected ? Color.green : Color.secondary)
                     .frame(width: 7, height: 7)
                 Text(model.connected ? "connected" : "daemon offline")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
+                Button {
+                    withAnimation(.snappy(duration: 0.2)) { showSettings.toggle() }
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .foregroundStyle(showSettings ? .primary : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Settings")
                 Button("Quit") { NSApplication.shared.terminate(nil) }
                     .buttonStyle(.plain)
                     .font(.caption)
@@ -110,6 +124,23 @@ struct AgentRow: View {
             if inside && canFocus { NSCursor.pointingHand.push() }
             else { NSCursor.pop() }
         }
+    }
+}
+
+struct SettingsView: View {
+    @ObservedObject var settings: AppSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle("Notify on needs-input / done", isOn: $settings.notificationsEnabled)
+            Toggle("Play a sound", isOn: $settings.soundEnabled)
+                .disabled(!settings.notificationsEnabled)
+            Toggle("Launch at login", isOn: $settings.launchAtLogin)
+        }
+        .toggleStyle(.switch)
+        .controlSize(.small)
+        .font(.caption)
+        .padding(.vertical, 4)
     }
 }
 

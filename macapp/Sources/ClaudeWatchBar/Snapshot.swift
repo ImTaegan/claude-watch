@@ -33,7 +33,7 @@ enum Snapshot {
                 colors: [.purple, .pink, .orange],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
-            PanelView(model: model, scrolls: false)
+            PanelView(model: model, settings: AppSettings(), scrolls: false)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(28)
         }

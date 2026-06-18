@@ -3,10 +3,11 @@ import ClaudeWatchKit
 
 struct ClaudeWatchBarApp: App {
     @StateObject private var model = StatusModel()
+    @StateObject private var settings = AppSettings()
 
     var body: some Scene {
         MenuBarExtra {
-            PanelView(model: model)
+            PanelView(model: model, settings: settings)
         } label: {
             if model.payload.counts.needsInput > 0 {
                 // Show the count right in the menu bar so you don't have to open it.
