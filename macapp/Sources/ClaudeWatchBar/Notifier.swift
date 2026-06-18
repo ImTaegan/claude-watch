@@ -10,12 +10,6 @@ enum Notifier {
     static var soundEnabled = true
     static var usageAlertsEnabled = true
 
-    /// Bundled Anthropic icon used as the notification's app icon, if present.
-    static let iconPath: String? = {
-        guard let url = Bundle.main.resourceURL?.appendingPathComponent("anthropic.png"),
-              FileManager.default.fileExists(atPath: url.path) else { return nil }
-        return url.path
-    }()
 
     /// Resolved path to terminal-notifier, or nil if not installed.
     static let notifierPath: String? = {
@@ -72,7 +66,6 @@ enum Notifier {
                                              _ body: String, _ sound: String, _ focus: Agent?) {
         var args = ["-title", title, "-message", body, "-group", "claude-watch"]
         if soundEnabled { args += ["-sound", sound] }
-        if let icon = iconPath { args += ["-appIcon", icon] }
         if let f = focus, let exe = Bundle.main.executableURL?.path,
            !(f.term == nil && f.tty == nil && f.cwd == nil) {
             args += ["-execute", focusCommand(exe: exe, focus: f)]
