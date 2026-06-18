@@ -11,7 +11,19 @@ BIN="$(swift build -c release --show-bin-path)/${APP}"
 rm -rf "$BUNDLE"
 mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
 cp "$BIN" "$BUNDLE/Contents/MacOS/$APP"
-[ -f assets/anthropic.png ] && cp assets/anthropic.png "$BUNDLE/Contents/Resources/anthropic.png"
+
+# App icon from the Anthropic mark. Used as the app's icon and, via
+# terminal-notifier -sender, as the notification icon.
+if [ -f assets/anthropic.png ]; then
+  cp assets/anthropic.png "$BUNDLE/Contents/Resources/anthropic.png"
+  ICONSET="$(mktemp -d)/AppIcon.iconset"; mkdir -p "$ICONSET"
+  for s in 16 32 128 256 512; do
+    sips -z "$s" "$s" assets/anthropic.png --out "$ICONSET/icon_${s}x${s}.png" >/dev/null 2>&1
+    d=$((s * 2))
+    sips -z "$d" "$d" assets/anthropic.png --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null 2>&1
+  done
+  iconutil -c icns "$ICONSET" -o "$BUNDLE/Contents/Resources/AppIcon.icns" 2>/dev/null || true
+fi
 
 cat > "$BUNDLE/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -20,6 +32,7 @@ cat > "$BUNDLE/Contents/Info.plist" <<'PLIST'
 <dict>
   <key>CFBundleName</key><string>ClaudeWatchBar</string>
   <key>CFBundleExecutable</key><string>ClaudeWatchBar</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleIdentifier</key><string>com.claudewatch.menubar</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
