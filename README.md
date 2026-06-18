@@ -44,6 +44,8 @@ What it does:
 - **Detailed activity**: rows show the real action (`editing StatusModel.swift`, `$ npm run build`) and exactly what a blocked agent is asking.
 - **Burn-rate ETA**: the session bar projects "~25m to limit" from how fast you're consuming.
 - **Context trend** (↑) on chats whose context is climbing, and a **"Today · N tokens out"** total across all sessions.
+- **Desktop widget**: the pop-out button (footer) detaches the panel into a draggable, always-on-top floating widget you can park anywhere; it remembers its spot and reopens if it was open last launch.
+- **Quiet when you're looking**: notifications are suppressed for the terminal you're actively viewing (only background agents ping you). Needs Accessibility permission, granted on first launch; fails safe (still notifies) without it.
 - **Settings** (gear in the footer): toggle notifications, sound, and launch-at-login.
 
 How it works: the app polls `GET http://127.0.0.1:7459/status` once per second and
