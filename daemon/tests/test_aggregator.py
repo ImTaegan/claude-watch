@@ -65,6 +65,38 @@ def test_status_empty():
     assert st["counts"] == {"needs_input": 0, "running": 0, "done": 0, "idle": 0}
 
 
+def test_status_includes_tool_term_tty_and_waiting():
+    r = SessionRegistry()
+    r.update("s1", "projA", "running", now=100.0,
+             tool="Edit", term="iTerm.app", tty="/dev/ttys003")
+    st = r.status(now=102.0)
+    a = st["agents"][0]
+    assert a["tool"] == "Edit"
+    assert a["term"] == "iTerm.app"
+    assert a["tty"] == "/dev/ttys003"
+    assert a["waiting_seconds"] is None
+
+
+def test_waiting_seconds_tracks_start_and_clears():
+    r = SessionRegistry()
+    r.update("s1", "p", "needs_input", now=10.0)
+    r.update("s1", "p", "needs_input", now=15.0)  # still waiting, keep original start
+    assert r.status(now=20.0)["agents"][0]["waiting_seconds"] == 10.0
+    r.update("s1", "p", "running", now=21.0)       # left needs_input
+    assert r.status(now=22.0)["agents"][0]["waiting_seconds"] is None
+
+
+def test_update_preserves_term_tty_tool_when_not_resent():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=1.0,
+             tool="Bash", term="iTerm.app", tty="/dev/ttys1")
+    r.update("s1", "p", "needs_input", now=2.0)  # no extras passed
+    a = r.status(now=2.0)["agents"][0]
+    assert a["term"] == "iTerm.app"
+    assert a["tty"] == "/dev/ttys1"
+    assert a["tool"] == "Bash"
+
+
 def test_gc_removes_stale_only():
     r = SessionRegistry()
     r.update("old", "p1", "running", now=0.0)

@@ -13,5 +13,10 @@ def handle_event_body(registry, raw, now):
     session_id = data["session_id"]
     event = data["event"]
     project = data.get("project") or project_from_cwd(data.get("cwd", ""))
-    registry.update(session_id, project, event, now)
+    registry.update(
+        session_id, project, event, now,
+        tool=data.get("tool"),
+        term=data.get("term"),
+        tty=data.get("tty"),
+    )
     return registry.aggregate()

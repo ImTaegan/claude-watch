@@ -18,16 +18,35 @@ class SessionRegistry:
         # session_id -> {"project": str, "state": int, "last_seen": float}
         self._sessions = {}
 
-    def update(self, session_id, project, event, now):
+    def update(self, session_id, project, event, now,
+               tool=None, term=None, tty=None):
         if event == "ended":
             self._sessions.pop(session_id, None)
             return
         if event not in EVENT_TO_STATE:
             raise ValueError(f"unknown event: {event}")
+        state = EVENT_TO_STATE[event]
+        prev = self._sessions.get(session_id)
+
+        # waiting_since marks when the agent first started needing input;
+        # it persists while still waiting and clears once it moves on.
+        if state == NEEDS_INPUT:
+            waiting_since = (prev.get("waiting_since")
+                             if prev and prev.get("waiting_since") else now)
+        else:
+            waiting_since = None
+
+        def keep(field, value):
+            return value if value is not None else (prev.get(field) if prev else None)
+
         self._sessions[session_id] = {
             "project": project,
-            "state": EVENT_TO_STATE[event],
+            "state": state,
             "last_seen": now,
+            "tool": keep("tool", tool),
+            "term": keep("term", term),
+            "tty": keep("tty", tty),
+            "waiting_since": waiting_since,
         }
 
     def aggregate(self, max_sessions=5):
@@ -73,6 +92,11 @@ class SessionRegistry:
                     "project": s["project"],
                     "state": s["state"],
                     "age_seconds": round(now - s["last_seen"], 1),
+                    "tool": s.get("tool"),
+                    "term": s.get("term"),
+                    "tty": s.get("tty"),
+                    "waiting_seconds": (round(now - s["waiting_since"], 1)
+                                        if s.get("waiting_since") else None),
                 }
                 for s in ordered
             ],
