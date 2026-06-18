@@ -104,7 +104,8 @@ class SessionRegistry:
             }
         # Track 5h-window % samples for the burn-rate ETA, scoped to the
         # current window (reset when the window rolls over).
-        if five_hour and five_hour.get("used_percentage") is not None:
+        if (five_hour and five_hour.get("used_percentage") is not None
+                and five_hour.get("resets_at") is not None):
             ra = five_hour.get("resets_at")
             if ra != self._sess_window:
                 self._sess_window = ra

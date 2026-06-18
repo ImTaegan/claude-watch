@@ -27,6 +27,8 @@ def handle_event_body(registry, raw, now):
 def _as_int(x):
     # Claude Code may report fractional percentages (e.g. 7.0000001); clients
     # expect whole numbers, so normalize here at the boundary.
+    if isinstance(x, bool):  # bool is an int subclass — reject it explicitly
+        return None
     return int(round(x)) if isinstance(x, (int, float)) else None
 
 

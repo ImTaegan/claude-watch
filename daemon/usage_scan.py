@@ -11,14 +11,22 @@ import json
 import os
 
 
-def _today(now):
-    midnight = datetime.datetime.fromtimestamp(now).replace(
-        hour=0, minute=0, second=0, microsecond=0)
-    return midnight.timestamp(), midnight.date().isoformat()
+def _local_midnight_ts(now):
+    return datetime.datetime.fromtimestamp(now).replace(
+        hour=0, minute=0, second=0, microsecond=0).timestamp()
+
+
+def _entry_epoch(ts):
+    # Transcript timestamps are UTC ISO-8601 (…Z). Compare in absolute time so
+    # "today" is correct regardless of the user's timezone.
+    try:
+        return datetime.datetime.fromisoformat(str(ts)).timestamp()
+    except Exception:
+        return None
 
 
 def scan_today_output_tokens(projects_dir, now):
-    midnight_ts, today_iso = _today(now)
+    midnight_ts = _local_midnight_ts(now)
     total = 0
     for path in glob.glob(os.path.join(projects_dir, "*", "*.jsonl")):
         try:
@@ -34,7 +42,8 @@ def scan_today_output_tokens(projects_dir, now):
                         continue
                     if entry.get("type") != "assistant":
                         continue
-                    if not str(entry.get("timestamp", "")).startswith(today_iso):
+                    epoch = _entry_epoch(entry.get("timestamp"))
+                    if epoch is None or epoch < midnight_ts:
                         continue
                     usage = (entry.get("message") or {}).get("usage") or {}
                     total += usage.get("output_tokens", 0) or 0

@@ -45,10 +45,13 @@ final class StatusModel: ObservableObject {
                 return
             }
             let decoded = try decoder.decode(StatusPayload.self, from: data)
-            fireTransitions(decoded.agents)
-            fireUsageAlerts(decoded)
+            // Update the UI first; notification logic (which may do a brief
+            // synchronous Accessibility query) runs after, so the panel/widget
+            // never wait on it.
             payload = decoded
             connected = true
+            fireTransitions(decoded.agents)
+            fireUsageAlerts(decoded)
         } catch {
             connected = false
         }

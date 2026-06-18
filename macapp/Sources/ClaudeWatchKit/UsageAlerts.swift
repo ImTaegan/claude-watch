@@ -37,6 +37,16 @@ public func detectUsageAlerts(
     windowAlerts(payload.limits?.fiveHour, sessionThresholds, "session") { .session(pct: $0) }
     windowAlerts(payload.limits?.sevenDay, weeklyThresholds, "weekly") { .weekly(pct: $0) }
 
+    // Drop fired keys from previous windows so the set stays bounded over a
+    // long-running session (each reset embeds a new resets_at).
+    func prune(_ tag: String, _ w: LimitWindow?) {
+        guard let w else { return }
+        let current = "\(tag)@\(Int(w.resetsAt))@"
+        fired = fired.filter { !$0.hasPrefix("\(tag)@") || $0.hasPrefix(current) }
+    }
+    prune("session", payload.limits?.fiveHour)
+    prune("weekly", payload.limits?.sevenDay)
+
     for a in payload.agents {
         guard let pct = a.contextPct else { continue }
         let key = "ctx@\(a.id)"

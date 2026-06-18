@@ -1,6 +1,12 @@
 import AppKit
 import SwiftUI
 
+/// A borderless NSPanel returns false for canBecomeKey by default, which stops
+/// the embedded SwiftUI controls (toggles, buttons) from working. Allow it.
+private final class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+}
+
 /// A floating, always-on-top desktop widget that shows the same live PanelView.
 /// Borderless + non-activating so it behaves like a HUD you park anywhere;
 /// draggable by its background; remembers its position.
@@ -19,9 +25,12 @@ final class WidgetWindow {
         }
     }
 
-    /// Re-open the widget at launch if it was open last time.
+    /// Re-open the widget at launch if it was open last time. Guarded so it
+    /// only acts once (the menu-bar label's .task can re-run on icon changes,
+    /// and we must not keep re-raising the panel after the user moves it).
     func restoreIfNeeded(model: StatusModel, settings: AppSettings) {
-        if settings.widgetOpen { show(model: model, settings: settings) }
+        guard panel == nil, settings.widgetOpen else { return }
+        show(model: model, settings: settings)
     }
 
     private func show(model: StatusModel, settings: AppSettings) {
@@ -29,7 +38,7 @@ final class WidgetWindow {
             let root = PanelView(model: model, settings: settings)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             let host = NSHostingController(rootView: AnyView(root))
-            let p = NSPanel(contentViewController: host)
+            let p = KeyablePanel(contentViewController: host)
             p.styleMask = [.borderless, .nonactivatingPanel]
             p.isFloatingPanel = true
             p.level = .floating

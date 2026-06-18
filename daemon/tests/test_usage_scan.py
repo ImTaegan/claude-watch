@@ -1,8 +1,15 @@
+import datetime
 import json
 import os
 import time
 
 from usage_scan import scan_today_output_tokens
+
+_NOW_UTC = datetime.datetime.now(datetime.timezone.utc)
+
+
+def _utc(delta_days=0):
+    return (_NOW_UTC + datetime.timedelta(days=delta_days)).isoformat()
 
 
 def _write(path, entries):
@@ -13,28 +20,25 @@ def _write(path, entries):
 
 
 def test_sums_today_assistant_output_tokens(tmp_path):
-    now = time.time()
-    today = __import__("datetime").datetime.fromtimestamp(now).date().isoformat()
     proj = str(tmp_path / "projects" / "-some-cwd")
     _write(os.path.join(proj, "sess.jsonl"), [
-        {"type": "assistant", "timestamp": f"{today}T10:00:00Z",
+        {"type": "assistant", "timestamp": _utc(),
          "message": {"usage": {"output_tokens": 100}}},
-        {"type": "assistant", "timestamp": f"{today}T11:00:00Z",
+        {"type": "assistant", "timestamp": _utc(),
          "message": {"usage": {"output_tokens": 250}}},
-        {"type": "user", "timestamp": f"{today}T11:00:01Z"},  # ignored
+        {"type": "user", "timestamp": _utc()},  # ignored
         {"type": "assistant", "timestamp": "2020-01-01T00:00:00Z",
          "message": {"usage": {"output_tokens": 9999}}},      # not today
     ])
-    total = scan_today_output_tokens(str(tmp_path / "projects"), now)
+    total = scan_today_output_tokens(str(tmp_path / "projects"), time.time())
     assert total == 350
 
 
 def test_skips_files_not_modified_today(tmp_path):
     now = time.time()
-    today = __import__("datetime").datetime.fromtimestamp(now).date().isoformat()
     proj = str(tmp_path / "projects" / "-old")
     p = os.path.join(proj, "old.jsonl")
-    _write(p, [{"type": "assistant", "timestamp": f"{today}T10:00:00Z",
+    _write(p, [{"type": "assistant", "timestamp": _utc(),
                 "message": {"usage": {"output_tokens": 500}}}])
     old = now - 3 * 86400
     os.utime(p, (old, old))  # mtime 3 days ago -> skipped

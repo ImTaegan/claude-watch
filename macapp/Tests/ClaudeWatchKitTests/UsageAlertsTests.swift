@@ -55,6 +55,9 @@ final class UsageAlertsTests: XCTestCase {
                                   weeklyThresholds: W, contextThreshold: C,
                                   fired: &fired, hasBaseline: true)  // new window
         XCTAssertEqual(a, [.session(pct: 80)])
+        // the previous window's key was pruned, so the set doesn't accumulate
+        XCTAssertFalse(fired.contains("session@1000@80"))
+        XCTAssertTrue(fired.contains("session@2000@80"))
     }
 
     func testContextAlertAndReArm() {
