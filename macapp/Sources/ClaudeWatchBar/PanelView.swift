@@ -97,10 +97,21 @@ struct AgentRow: View {
                         .lineLimit(1)
                     Spacer(minLength: 6)
                     if let pct = agent.contextPct {
-                        Text("\(pct)%")
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(usageTier(pct) == .normal ? .secondary : usageTier(pct).color)
-                            .help("context: \(agent.contextTokens ?? 0) of \(agent.contextSize ?? 0) tokens")
+                        HStack(spacing: 2) {
+                            if agent.contextTrend == "up", pct >= 70 {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(usageTier(pct).color)
+                            } else if agent.contextTrend == "down" {
+                                Image(systemName: "arrow.down")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Text("\(pct)%")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(usageTier(pct) == .normal ? .secondary : usageTier(pct).color)
+                        }
+                        .help("context: \(agent.contextTokens ?? 0) of \(agent.contextSize ?? 0) tokens")
                     }
                     if hovered && canFocus {
                         Image(systemName: "arrow.up.forward.app.fill")

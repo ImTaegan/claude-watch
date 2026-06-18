@@ -19,7 +19,7 @@ enum Snapshot {
                       tool: "Edit", term: "Apple_Terminal", tty: "/dev/ttys006",
                       waitingSeconds: 410, contextPct: 88),
                 Agent(id: "b", project: "claude-watchh", state: 1, ageSeconds: 142,
-                      tool: "Edit", term: "vscode", contextPct: 92),
+                      tool: "Edit", term: "vscode", contextPct: 92, contextTrend: "up"),
                 Agent(id: "c", project: "growth-saloon", state: 1, ageSeconds: 17,
                       tool: "Bash", term: "iTerm.app", contextPct: 31),
                 Agent(id: "d", project: "gs-referral", state: 2, ageSeconds: 4,
@@ -28,7 +28,8 @@ enum Snapshot {
                       tool: "Grep", contextPct: 12),
             ],
             limits: Limits(
-                fiveHour: LimitWindow(usedPercentage: 72, resetsAt: now + 9600),
+                fiveHour: LimitWindow(usedPercentage: 72, resetsAt: now + 9600,
+                                      etaSeconds: 1500),
                 sevenDay: LimitWindow(usedPercentage: 38, resetsAt: now + 6 * 86400)
             )
         )

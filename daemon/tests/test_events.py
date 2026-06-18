@@ -28,7 +28,8 @@ def test_handle_usage_body_stores_context_and_limits():
     handle_usage_body(r, raw, now=2.0)
     st = r.status(now=2.0)
     assert st["agents"][0]["context_pct"] == 35
-    assert st["limits"]["five_hour"] == {"used_percentage": 38, "resets_at": 1781798400}
+    assert st["limits"]["five_hour"]["used_percentage"] == 38
+    assert st["limits"]["five_hour"]["resets_at"] == 1781798400
     assert st["limits"]["seven_day"]["used_percentage"] == 5
 
 

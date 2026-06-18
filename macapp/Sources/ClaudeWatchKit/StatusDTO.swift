@@ -40,12 +40,13 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
     public let contextPct: Int?
     public let contextTokens: Int?
     public let contextSize: Int?
+    public let contextTrend: String?
 
     public init(id: String = "", project: String, state: Int, ageSeconds: Double,
                 tool: String? = nil, term: String? = nil, tty: String? = nil,
                 cwd: String? = nil, waitingSeconds: Double? = nil,
                 contextPct: Int? = nil, contextTokens: Int? = nil,
-                contextSize: Int? = nil) {
+                contextSize: Int? = nil, contextTrend: String? = nil) {
         self.id = id
         self.project = project
         self.state = state
@@ -58,6 +59,7 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
         self.contextPct = contextPct
         self.contextTokens = contextTokens
         self.contextSize = contextSize
+        self.contextTrend = contextTrend
     }
 
     public var agentState: AgentState { AgentState(rawValue: state) ?? .idle }
@@ -66,10 +68,12 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
 public struct LimitWindow: Codable, Equatable, Sendable {
     public let usedPercentage: Int
     public let resetsAt: Double
+    public let etaSeconds: Double?
 
-    public init(usedPercentage: Int, resetsAt: Double) {
+    public init(usedPercentage: Int, resetsAt: Double, etaSeconds: Double? = nil) {
         self.usedPercentage = usedPercentage
         self.resetsAt = resetsAt
+        self.etaSeconds = etaSeconds
     }
 }
 

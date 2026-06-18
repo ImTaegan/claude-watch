@@ -35,6 +35,12 @@ struct UsageSummaryView: View {
                 }
             }
             .frame(height: 5)
+            if let eta = window.etaSeconds {
+                Text(etaToLimit(eta))
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(tier == .normal ? Color.secondary : tier.color)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 }

@@ -20,6 +20,13 @@ final class UsageTests: XCTestCase {
         XCTAssertEqual(resetCountdown(resetsAt: 0, now: 100), "resets now")
     }
 
+    func testEtaToLimit() {
+        XCTAssertEqual(etaToLimit(1200), "~20m to limit")
+        XCTAssertEqual(etaToLimit(4200), "~1h 10m to limit")
+        XCTAssertEqual(etaToLimit(3600), "~1h to limit")
+        XCTAssertEqual(etaToLimit(20), "~1m to limit")
+    }
+
     func testDecodeStatusWithLimitsAndContext() throws {
         let json = """
         {"counts":{"needs_input":0,"running":1,"done":0,"idle":0},

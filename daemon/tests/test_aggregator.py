@@ -110,7 +110,8 @@ def test_update_usage_and_status_limits():
     assert a["context_pct"] == 35
     assert a["context_tokens"] == 351590
     assert a["context_size"] == 1000000
-    assert st["limits"]["five_hour"] == {"used_percentage": 38, "resets_at": 1781798400}
+    assert st["limits"]["five_hour"]["used_percentage"] == 38
+    assert st["limits"]["five_hour"]["resets_at"] == 1781798400
     assert st["limits"]["seven_day"]["used_percentage"] == 5
 
 
@@ -120,6 +121,50 @@ def test_status_without_usage_is_null():
     st = r.status(now=1.0)
     assert st["agents"][0]["context_pct"] is None
     assert st["limits"] is None
+
+
+def test_context_trend():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=1.0)
+    r.update_usage("s1", now=1.0, context_pct=40)
+    assert r.status(now=1.0)["agents"][0]["context_trend"] is None  # first sample
+    r.update_usage("s1", now=2.0, context_pct=55)
+    assert r.status(now=2.0)["agents"][0]["context_trend"] == "up"
+    r.update_usage("s1", now=3.0, context_pct=20)  # /compact
+    assert r.status(now=3.0)["agents"][0]["context_trend"] == "down"
+
+
+def test_session_eta_from_rising_samples():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=0.0)
+    # 50% -> 60% over 300s => 0.0333%/s; ETA to 100 = 40/0.0333 = 1200s
+    r.update_usage("s1", now=0.0, context_pct=10,
+                   five_hour={"used_percentage": 50, "resets_at": 9999})
+    r.update_usage("s1", now=300.0, context_pct=10,
+                   five_hour={"used_percentage": 60, "resets_at": 9999})
+    fh = r.status(now=300.0)["limits"]["five_hour"]
+    assert fh["eta_seconds"] is not None
+    assert 1100 <= fh["eta_seconds"] <= 1300
+
+
+def test_session_eta_none_when_flat_or_too_short():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=0.0)
+    r.update_usage("s1", now=0.0, five_hour={"used_percentage": 50, "resets_at": 1})
+    # only one sample -> no eta
+    assert r.status(now=0.0)["limits"]["five_hour"]["eta_seconds"] is None
+    # flat over time -> no eta
+    r.update_usage("s1", now=300.0, five_hour={"used_percentage": 50, "resets_at": 1})
+    assert r.status(now=300.0)["limits"]["five_hour"]["eta_seconds"] is None
+
+
+def test_window_reset_clears_eta_history():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=0.0)
+    r.update_usage("s1", now=0.0, five_hour={"used_percentage": 50, "resets_at": 1})
+    r.update_usage("s1", now=300.0, five_hour={"used_percentage": 90, "resets_at": 2})  # new window
+    # history reset -> single sample in new window -> no eta
+    assert r.status(now=300.0)["limits"]["five_hour"]["eta_seconds"] is None
 
 
 def test_gc_drops_stale_usage():

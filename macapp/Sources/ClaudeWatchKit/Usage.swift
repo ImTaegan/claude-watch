@@ -24,3 +24,11 @@ public func resetCountdown(resetsAt: Double, now: Double) -> String {
     }
     return "resets in \(hours / 24)d"
 }
+
+/// "~25m to limit" / "~1h 10m to limit" — the burn-rate projection.
+public func etaToLimit(_ seconds: Double) -> String {
+    let mins = max(1, Int(seconds / 60))
+    if mins < 60 { return "~\(mins)m to limit" }
+    let h = mins / 60, m = mins % 60
+    return m > 0 ? "~\(h)h \(m)m to limit" : "~\(h)h to limit"
+}
