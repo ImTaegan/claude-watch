@@ -16,14 +16,14 @@ final class TransitionsTests: XCTestCase {
         let old: [String: AgentState] = ["a": .running]
         let new = [agent("a", 3, "compile-me")]
         let t = detectTransitions(old: old, new: new, hasBaseline: true)
-        XCTAssertEqual(t, [.needsInput(project: "compile-me")])
+        XCTAssertEqual(t, [.needsInput(new[0])])
     }
 
     func testRunningToDoneNotifies() {
         let old: [String: AgentState] = ["a": .running]
         let new = [agent("a", 2, "gs-referral")]
         let t = detectTransitions(old: old, new: new, hasBaseline: true)
-        XCTAssertEqual(t, [.done(project: "gs-referral")])
+        XCTAssertEqual(t, [.done(new[0])])
     }
 
     func testStayingInNeedsInputDoesNotRenotify() {
@@ -36,6 +36,6 @@ final class TransitionsTests: XCTestCase {
         // Agent "z" wasn't in the previous map (appeared after baseline).
         let new = [agent("z", 3, "new-proj")]
         let t = detectTransitions(old: ["a": .running], new: new, hasBaseline: true)
-        XCTAssertEqual(t, [.needsInput(project: "new-proj")])
+        XCTAssertEqual(t, [.needsInput(new[0])])
     }
 }

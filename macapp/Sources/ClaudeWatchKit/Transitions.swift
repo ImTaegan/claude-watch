@@ -1,9 +1,10 @@
 import Foundation
 
-/// A state change worth notifying the user about.
+/// A state change worth notifying the user about. Carries the agent so the
+/// notification can focus its terminal on tap.
 public enum Transition: Equatable, Sendable {
-    case needsInput(project: String)
-    case done(project: String)
+    case needsInput(Agent)
+    case done(Agent)
 }
 
 /// Pure transition detector: given the previous state-by-id map and the new
@@ -20,9 +21,9 @@ public func detectTransitions(
     for a in new {
         let prev = old[a.id]
         if a.agentState == .needsInput, prev != .needsInput {
-            out.append(.needsInput(project: a.project))
+            out.append(.needsInput(a))
         } else if a.agentState == .done, prev != .done {
-            out.append(.done(project: a.project))
+            out.append(.done(a))
         }
     }
     return out

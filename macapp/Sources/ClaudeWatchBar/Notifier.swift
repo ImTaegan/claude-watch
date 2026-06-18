@@ -1,45 +1,68 @@
 import Foundation
+import UserNotifications
+import ClaudeWatchKit
 
-/// Fires native macOS notifications. Uses `osascript display notification`,
-/// which works for an unsigned/ad-hoc dev build without the UNUserNotification
-/// signing + authorization dance, and plays a system sound.
+/// Fires native macOS notifications. Prefers UNUserNotificationCenter (so a tap
+/// can focus the agent's terminal); falls back to `osascript display
+/// notification` when notifications aren't authorized (e.g. an unsigned build),
+/// which always works but isn't tappable.
 enum Notifier {
     static var enabled = true
     static var soundEnabled = true
     static var usageAlertsEnabled = true
+    static var useUserNotifications = false  // set true once UN authorization granted
 
-    static func needsInput(project: String) {
-        post(title: "\(project) needs you",
-             body: "An agent is waiting for your input.",
-             sound: "Submarine")
+    static func needsInput(_ a: Agent) {
+        deliver("\(a.project) needs you", "Waiting for your input.", "Submarine", focus: a)
     }
 
-    static func done(project: String) {
-        post(title: "\(project) finished",
-             body: "An agent just completed its task.",
-             sound: "Glass")
+    static func done(_ a: Agent) {
+        deliver("\(a.project) finished", "An agent just completed its task.", "Glass", focus: a)
     }
 
     static func sessionUsage(pct: Int) {
         guard usageAlertsEnabled else { return }
-        post(title: "Session usage \(pct)%",
-             body: "Approaching your 5-hour limit.", sound: "Funk")
+        deliver("Session usage \(pct)%", "Approaching your 5-hour limit.", "Funk", focus: nil)
     }
 
     static func weeklyUsage(pct: Int) {
         guard usageAlertsEnabled else { return }
-        post(title: "Weekly usage \(pct)%",
-             body: "Approaching your weekly limit.", sound: "Funk")
+        deliver("Weekly usage \(pct)%", "Approaching your weekly limit.", "Funk", focus: nil)
     }
 
     static func contextHigh(project: String, pct: Int) {
         guard usageAlertsEnabled else { return }
-        post(title: "\(project) context \(pct)%",
-             body: "Consider /compact or a fresh session.", sound: "Tink")
+        deliver("\(project) context \(pct)%", "Consider /compact or a fresh session.",
+                "Tink", focus: nil)
     }
 
-    private static func post(title: String, body: String, sound: String) {
+    private static func deliver(_ title: String, _ body: String, _ sound: String, focus: Agent?) {
         guard enabled else { return }
+        if useUserNotifications {
+            postUserNotification(title, body, focus)
+        } else {
+            postViaOsascript(title, body, sound)
+        }
+    }
+
+    private static func postUserNotification(_ title: String, _ body: String, _ focus: Agent?) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        if soundEnabled { content.sound = .default }
+        if let f = focus {
+            var info: [String: String] = [:]
+            if let t = f.term { info["term"] = t }
+            if let t = f.tty { info["tty"] = t }
+            if let c = f.cwd { info["cwd"] = c }
+            content.userInfo = info
+        }
+        let req = UNNotificationRequest(identifier: UUID().uuidString,
+                                        content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(req)
+    }
+
+    private static func postViaOsascript(_ title: String, _ body: String, _ sound: String) {
         let soundClause = soundEnabled ? " sound name \"\(escape(sound))\"" : ""
         let script = "display notification \"\(escape(body))\" "
             + "with title \"\(escape(title))\"" + soundClause
@@ -50,8 +73,6 @@ enum Notifier {
     }
 
     private static func escape(_ s: String) -> String {
-        // AppleScript string literals can't contain raw newlines, and quotes/
-        // backslashes must be escaped or the notification silently fails.
         s.replacingOccurrences(of: "\\", with: "\\\\")
          .replacingOccurrences(of: "\"", with: "\\\"")
          .replacingOccurrences(of: "\n", with: " ")

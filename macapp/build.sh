@@ -31,5 +31,9 @@ cat > "$BUNDLE/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
+# Ad-hoc sign so UNUserNotificationCenter (tappable notifications) works.
+codesign --force --deep --sign - "$BUNDLE" 2>/dev/null \
+  && echo "Ad-hoc signed ${BUNDLE}" || echo "codesign skipped"
+
 echo "Built ${BUNDLE}"
 echo "Run: open ${BUNDLE}"

@@ -59,8 +59,8 @@ final class StatusModel: ObservableObject {
                                        hasBaseline: hasBaseline)
         for e in events {
             switch e {
-            case .needsInput(let project): Notifier.needsInput(project: project)
-            case .done(let project): Notifier.done(project: project)
+            case .needsInput(let agent): Notifier.needsInput(agent)
+            case .done(let agent): Notifier.done(agent)
             }
         }
         // Merge (don't replace): if an agent momentarily drops out of a poll
