@@ -19,6 +19,7 @@ final class StatusModel: ObservableObject {
     }()
 
     init() {
+        ActiveWindow.requestPermissionIfNeeded()
         start()
     }
 
@@ -57,10 +58,17 @@ final class StatusModel: ObservableObject {
     private func fireTransitions(_ agents: [Agent]) {
         let events = detectTransitions(old: lastStates, new: agents,
                                        hasBaseline: hasBaseline)
-        for e in events {
-            switch e {
-            case .needsInput(let agent): Notifier.needsInput(agent)
-            case .done(let agent): Notifier.done(agent)
+        if !events.isEmpty {
+            // Skip notifying for the terminal you're actively looking at.
+            let front = ActiveWindow.frontmostBundleId()
+            let title = ActiveWindow.focusedTitle()
+            for e in events {
+                if agentIsActivelyViewed(e.agent, frontmostBundleId: front,
+                                         focusedTitle: title) { continue }
+                switch e {
+                case .needsInput(let agent): Notifier.needsInput(agent)
+                case .done(let agent): Notifier.done(agent)
+                }
             }
         }
         // Merge (don't replace): if an agent momentarily drops out of a poll

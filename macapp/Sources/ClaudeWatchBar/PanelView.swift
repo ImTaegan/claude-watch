@@ -21,11 +21,8 @@ struct PanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Claude Agents").font(.headline)
-                Spacer()
-                CountPills(counts: model.payload.counts)
-            }
+            Text("Claude Agents").font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
             if let limits = model.payload.limits {
                 UsageSummaryView(limits: limits, now: Date().timeIntervalSince1970)
             }
@@ -183,28 +180,4 @@ struct SettingsView: View {
     }
 }
 
-struct CountPills: View {
-    let counts: Counts
-
-    var body: some View {
-        HStack(spacing: 5) {
-            pill(counts.needsInput, .orange)
-            pill(counts.running, .blue)
-            pill(counts.done, .green)
-            pill(counts.idle, .secondary)
-        }
-    }
-
-    @ViewBuilder
-    private func pill(_ n: Int, _ c: Color) -> some View {
-        if n > 0 {
-            HStack(spacing: 3) {
-                Circle().fill(c).frame(width: 6, height: 6)
-                Text("\(n)").font(.caption2.weight(.semibold))
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Capsule().fill(c.opacity(0.15)))
-        }
-    }
-}
+// (Count pills removed — the per-row state and the menu-bar badge cover it.)

@@ -5,6 +5,12 @@ import Foundation
 public enum Transition: Equatable, Sendable {
     case needsInput(Agent)
     case done(Agent)
+
+    public var agent: Agent {
+        switch self {
+        case .needsInput(let a), .done(let a): return a
+        }
+    }
 }
 
 /// Pure transition detector: given the previous state-by-id map and the new
