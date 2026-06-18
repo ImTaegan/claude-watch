@@ -33,6 +33,21 @@ def test_handle_usage_body_stores_context_and_limits():
     assert st["limits"]["seven_day"]["used_percentage"] == 5
 
 
+def test_handle_usage_body_rounds_fractional_percentages():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=1.0)
+    raw = json.dumps({
+        "session_id": "s1", "context_pct": 54.0,
+        "five_hour_pct": 7.000000000000001, "five_hour_resets_at": 100,
+        "seven_day_pct": 6, "seven_day_resets_at": 200,
+    })
+    handle_usage_body(r, raw, now=2.0)
+    st = r.status(now=2.0)
+    assert st["agents"][0]["context_pct"] == 54
+    assert st["limits"]["five_hour"]["used_percentage"] == 7  # int, not 7.0000…
+    assert isinstance(st["limits"]["five_hour"]["used_percentage"], int)
+
+
 def test_handle_usage_body_without_limits_leaves_them_none():
     r = SessionRegistry()
     r.update("s1", "p", "running", now=1.0)

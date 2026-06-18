@@ -24,11 +24,17 @@ def handle_event_body(registry, raw, now):
     return registry.aggregate()
 
 
+def _as_int(x):
+    # Claude Code may report fractional percentages (e.g. 7.0000001); clients
+    # expect whole numbers, so normalize here at the boundary.
+    return int(round(x)) if isinstance(x, (int, float)) else None
+
+
 def _window(data, prefix):
     pct = data.get(f"{prefix}_pct")
     if pct is None:
         return None
-    return {"used_percentage": pct, "resets_at": data.get(f"{prefix}_resets_at")}
+    return {"used_percentage": _as_int(pct), "resets_at": data.get(f"{prefix}_resets_at")}
 
 
 def handle_usage_body(registry, raw, now):
@@ -36,9 +42,9 @@ def handle_usage_body(registry, raw, now):
     data = json.loads(raw)
     registry.update_usage(
         data["session_id"], now,
-        context_pct=data.get("context_pct"),
-        context_tokens=data.get("context_tokens"),
-        context_size=data.get("context_size"),
+        context_pct=_as_int(data.get("context_pct")),
+        context_tokens=_as_int(data.get("context_tokens")),
+        context_size=_as_int(data.get("context_size")),
         five_hour=_window(data, "five_hour"),
         seven_day=_window(data, "seven_day"),
     )
