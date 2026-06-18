@@ -10,6 +10,7 @@ app. Both read the same daemon, so they work together or independently.
 3. Pair: `python claude_watch_daemon.py --scan` (saves the watch address to config.toml)
 4. Install hooks: `bash hooks/install.sh`
 5. Run: `cd daemon && source .venv/bin/activate && python claude_watch_daemon.py`
+6. Auto-start at login (recommended): `bash daemon/install-launchd.sh` — installs a launchd agent so the daemon always runs after reboot and restarts if it crashes.
 
 ## States
 - blue = running, green = done, amber = needs input, grey = idle, dim red = BLE disconnected
