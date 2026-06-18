@@ -13,6 +13,7 @@ def test_handle_event_body_passes_optional_fields():
     assert a["tool"] == "Edit"
     assert a["term"] == "iTerm.app"
     assert a["tty"] == "/dev/ttys003"
+    assert a["cwd"] == "/x/proj"
 
 
 def test_project_from_cwd():

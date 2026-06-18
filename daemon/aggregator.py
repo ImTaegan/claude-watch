@@ -19,7 +19,7 @@ class SessionRegistry:
         self._sessions = {}
 
     def update(self, session_id, project, event, now,
-               tool=None, term=None, tty=None):
+               tool=None, term=None, tty=None, cwd=None):
         if event == "ended":
             self._sessions.pop(session_id, None)
             return
@@ -46,6 +46,7 @@ class SessionRegistry:
             "tool": keep("tool", tool),
             "term": keep("term", term),
             "tty": keep("tty", tty),
+            "cwd": keep("cwd", cwd),
             "waiting_since": waiting_since,
         }
 
@@ -96,6 +97,7 @@ class SessionRegistry:
                     "tool": s.get("tool"),
                     "term": s.get("term"),
                     "tty": s.get("tty"),
+                    "cwd": s.get("cwd"),
                     "waiting_seconds": (round(now - s["waiting_since"], 1)
                                         if s.get("waiting_since") else None),
                 }

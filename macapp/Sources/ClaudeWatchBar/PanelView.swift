@@ -118,6 +118,15 @@ struct AgentRow: View {
         )
         .contentShape(Rectangle())
         .onTapGesture { TerminalFocuser.focus(agent) }
+        .contextMenu {
+            if canFocus {
+                Button("Focus Terminal") { TerminalFocuser.focus(agent) }
+            }
+            if let cwd = agent.cwd, !cwd.isEmpty {
+                Button("Reveal in Finder") { ProjectActions.revealInFinder(cwd) }
+                Button("Copy Path") { ProjectActions.copyPath(cwd) }
+            }
+        }
         .help(canFocus ? "Click to focus \(agent.project)'s terminal" : agent.project)
         .onHover { inside in
             hovered = inside
