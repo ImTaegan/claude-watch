@@ -9,8 +9,9 @@ swift build -c release
 BIN="$(swift build -c release --show-bin-path)/${APP}"
 
 rm -rf "$BUNDLE"
-mkdir -p "$BUNDLE/Contents/MacOS"
+mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
 cp "$BIN" "$BUNDLE/Contents/MacOS/$APP"
+[ -f assets/anthropic.png ] && cp assets/anthropic.png "$BUNDLE/Contents/Resources/anthropic.png"
 
 cat > "$BUNDLE/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
