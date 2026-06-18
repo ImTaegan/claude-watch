@@ -27,6 +27,12 @@ final class UsageTests: XCTestCase {
         XCTAssertEqual(etaToLimit(20), "~1m to limit")
     }
 
+    func testCompactTokens() {
+        XCTAssertEqual(compactTokens(950), "950")
+        XCTAssertEqual(compactTokens(340_000), "340k")
+        XCTAssertEqual(compactTokens(1_250_000), "1.2M")
+    }
+
     func testDecodeStatusWithLimitsAndContext() throws {
         let json = """
         {"counts":{"needs_input":0,"running":1,"done":0,"idle":0},

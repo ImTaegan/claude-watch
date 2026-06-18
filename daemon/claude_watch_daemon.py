@@ -14,8 +14,11 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import os
+
 from aggregator import SessionRegistry
 from events import handle_event_body, handle_usage_body
+from usage_scan import scan_today_output_tokens
 
 DEVICE_NAME = "ClaudeWatch"
 SERVICE_UUID = "c1a0de00-0001-4a00-b000-000000000001"
@@ -29,6 +32,7 @@ class AppState:
         self.dirty = None   # asyncio.Event, set in main()
         self.loop = None
         self.lock = threading.Lock()
+        self.today_tokens = None  # output tokens used today (background scan)
 
 
 def make_handler(state, idle_timeout):
@@ -45,7 +49,9 @@ def make_handler(state, idle_timeout):
             try:
                 with state.lock:
                     state.registry.gc(now, idle_timeout)
-                    body = json.dumps(state.registry.status(now)).encode()
+                    payload = state.registry.status(now)
+                payload["today_output_tokens"] = state.today_tokens
+                body = json.dumps(payload).encode()
             except Exception:
                 self.send_response(500)
                 self.end_headers()
@@ -82,6 +88,20 @@ def make_handler(state, idle_timeout):
             self.end_headers()
 
     return Handler
+
+
+def start_usage_scan(state, interval=300):
+    projects = os.path.expanduser("~/.claude/projects")
+
+    def loop():
+        while True:
+            try:
+                state.today_tokens = scan_today_output_tokens(projects, time.time())
+            except Exception:
+                pass
+            time.sleep(interval)
+
+    threading.Thread(target=loop, daemon=True).start()
 
 
 def start_http(state, port, idle_timeout):
@@ -130,6 +150,7 @@ async def run(args, writer):
     state.loop = asyncio.get_running_loop()
     state.dirty = asyncio.Event()
     start_http(state, args.port, args.idle_timeout)
+    start_usage_scan(state)
     await pusher(state, writer, args.debounce)
 
 

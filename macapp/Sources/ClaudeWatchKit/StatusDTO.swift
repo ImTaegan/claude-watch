@@ -91,10 +91,13 @@ public struct StatusPayload: Codable, Equatable, Sendable {
     public let counts: Counts
     public let agents: [Agent]
     public let limits: Limits?
+    public let todayOutputTokens: Int?
 
-    public init(counts: Counts, agents: [Agent], limits: Limits? = nil) {
+    public init(counts: Counts, agents: [Agent], limits: Limits? = nil,
+                todayOutputTokens: Int? = nil) {
         self.counts = counts
         self.agents = agents
         self.limits = limits
+        self.todayOutputTokens = todayOutputTokens
     }
 }

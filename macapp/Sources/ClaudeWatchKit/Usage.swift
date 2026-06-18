@@ -25,6 +25,14 @@ public func resetCountdown(resetsAt: Double, now: Double) -> String {
     return "resets in \(hours / 24)d"
 }
 
+/// Compact token count: 950, 340k, 1.2M.
+public func compactTokens(_ n: Int) -> String {
+    if n < 1000 { return "\(n)" }
+    if n < 1_000_000 { return "\(n / 1000)k" }
+    let m = Double(n) / 1_000_000
+    return String(format: "%.1fM", m)
+}
+
 /// "~25m to limit" / "~1h 10m to limit" — the burn-rate projection.
 public func etaToLimit(_ seconds: Double) -> String {
     let mins = max(1, Int(seconds / 60))

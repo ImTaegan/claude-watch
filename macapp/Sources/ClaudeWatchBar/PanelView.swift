@@ -29,6 +29,14 @@ struct PanelView: View {
             if let limits = model.payload.limits {
                 UsageSummaryView(limits: limits, now: Date().timeIntervalSince1970)
             }
+            if let today = model.payload.todayOutputTokens, today > 0 {
+                HStack {
+                    Text("Today").font(.caption2).foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(compactTokens(today)) tokens out")
+                        .font(.caption2.monospacedDigit()).foregroundStyle(.secondary)
+                }
+            }
             Divider().opacity(0.4)
             if model.payload.agents.isEmpty {
                 Text(model.connected ? "No active agents" : "Waiting for daemon…")

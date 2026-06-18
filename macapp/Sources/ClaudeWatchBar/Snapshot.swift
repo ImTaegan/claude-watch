@@ -31,7 +31,8 @@ enum Snapshot {
                 fiveHour: LimitWindow(usedPercentage: 72, resetsAt: now + 9600,
                                       etaSeconds: 1500),
                 sevenDay: LimitWindow(usedPercentage: 38, resetsAt: now + 6 * 86400)
-            )
+            ),
+            todayOutputTokens: 1_240_000
         )
 
         let content = ZStack {
