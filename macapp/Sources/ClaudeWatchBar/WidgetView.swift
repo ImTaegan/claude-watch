@@ -46,11 +46,27 @@ struct WidgetView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .frame(width: 212, alignment: .leading)
+        .frame(width: 176, alignment: .leading)
         .background(.ultraThinMaterial)
         .opacity(hovered ? 1.0 : 0.6)
         .animation(.easeInOut(duration: 0.15), value: hovered)
         .onHover { hovered = $0 }
+    }
+}
+
+/// A small white ring that fills to a chat's context %; number shows on hover.
+struct ContextRing: View {
+    let pct: Int
+    var body: some View {
+        ZStack {
+            Circle().stroke(Color.primary.opacity(0.18), lineWidth: 2)
+            Circle()
+                .trim(from: 0, to: CGFloat(pct) / 100)
+                .stroke(Color.white, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: 12, height: 12)
+        .help("context \(pct)%")
     }
 }
 
@@ -91,11 +107,10 @@ struct CompactAgentRow: View {
             Text(agent.project)
                 .font(.system(size: 11, weight: .medium))
                 .lineLimit(1)
+                .truncationMode(.tail)
             Spacer(minLength: 4)
             if let pct = agent.contextPct {
-                Text("\(pct)%")
-                    .font(.system(size: 9).monospacedDigit())
-                    .foregroundStyle(usageTier(pct) == .normal ? .secondary : usageTier(pct).color)
+                ContextRing(pct: pct)
             }
         }
         .padding(.horizontal, 5)
