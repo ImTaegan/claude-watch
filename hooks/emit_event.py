@@ -48,6 +48,34 @@ def _tty():
     return None
 
 
+# The Notification hook fires both for genuine prompts (Claude is blocked
+# waiting for you to answer a question or grant tool permission) AND for the
+# idle reminder after you've been away. We only want "needs input" for the
+# former. Suppressing biases safe: anything not clearly an idle nudge still
+# pings, so a real question is never silently dropped.
+NOTIFY_EVENTS = {"needs_input", "notify"}
+
+
+def _is_idle_nudge(data):
+    msg = (data.get("message") or "").lower()
+    ntype = (data.get("notification_type") or "").lower()
+    if "idle" in ntype:
+        return True
+    if "waiting for your input" in msg or "is waiting for" in msg:
+        return True
+    return False
+
+
+def _log_notification(data, decision):
+    # Temporary: capture real Notification payloads so the idle heuristic can
+    # be tuned to the exact text Claude Code sends. Best-effort, harmless.
+    try:
+        with open("/tmp/claude_watch_notif.log", "a") as f:
+            f.write(f"{decision}\t{json.dumps(data)}\n")
+    except Exception:
+        pass
+
+
 def _repo_root(cwd):
     """The git repo root for cwd, so the project label is the repo name
     (stable across subdirectories) rather than whatever folder a tool ran in."""
@@ -69,6 +97,13 @@ def main():
         data = json.load(sys.stdin)
     except Exception:
         data = {}
+
+    if event in NOTIFY_EVENTS:
+        idle = _is_idle_nudge(data)
+        _log_notification(data, "suppressed-idle" if idle else "needs_input")
+        if idle:
+            return  # leave the agent's prior state (e.g. "done") untouched
+        event = "needs_input"
 
     cwd = data.get("cwd", "")
     root = _repo_root(cwd) or cwd

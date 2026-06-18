@@ -1,7 +1,7 @@
 {
   "hooks": {
     "Notification": [
-      { "hooks": [ { "type": "command", "command": "python3 \"__EMIT_PATH__\" needs_input 2>/dev/null || true" } ] }
+      { "hooks": [ { "type": "command", "command": "python3 \"__EMIT_PATH__\" notify 2>/dev/null || true" } ] }
     ],
     "Stop": [
       { "hooks": [ { "type": "command", "command": "python3 \"__EMIT_PATH__\" done 2>/dev/null || true" } ] }
