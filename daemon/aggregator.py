@@ -26,7 +26,7 @@ class SessionRegistry:
         self._sess_window = None  # resets_at of the window the samples belong to
 
     def update(self, session_id, project, event, now,
-               tool=None, term=None, tty=None, cwd=None):
+               tool=None, term=None, tty=None, cwd=None, detail=None):
         if event == "ended":
             self._sessions.pop(session_id, None)
             return
@@ -51,6 +51,7 @@ class SessionRegistry:
             "state": state,
             "last_seen": now,
             "tool": keep("tool", tool),
+            "detail": detail if detail is not None else (prev.get("detail") if prev else None),
             "term": keep("term", term),
             "tty": keep("tty", tty),
             "cwd": keep("cwd", cwd),
@@ -157,6 +158,7 @@ class SessionRegistry:
                     "state": s["state"],
                     "age_seconds": round(now - s["last_seen"], 1),
                     "tool": s.get("tool"),
+                    "detail": s.get("detail"),
                     "term": s.get("term"),
                     "tty": s.get("tty"),
                     "cwd": s.get("cwd"),

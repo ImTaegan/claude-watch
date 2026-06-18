@@ -123,6 +123,14 @@ def test_status_without_usage_is_null():
     assert st["limits"] is None
 
 
+def test_status_includes_detail_and_preserves_it():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=1.0, tool="Edit", detail="main.cpp")
+    assert r.status(now=1.0)["agents"][0]["detail"] == "main.cpp"
+    r.update("s1", "p", "running", now=2.0)  # no detail resent
+    assert r.status(now=2.0)["agents"][0]["detail"] == "main.cpp"
+
+
 def test_context_trend():
     r = SessionRegistry()
     r.update("s1", "p", "running", now=1.0)

@@ -60,12 +60,25 @@ extension Agent {
     }
 
     /// Human-readable description of what the agent is doing right now.
+    /// Prefers the concrete `detail` (the file/command/question) when present.
     var activityText: String {
         switch agentState {
-        case .needsInput: return isStuck ? "still waiting on you" : "needs your input"
+        case .needsInput:
+            if let d = detail, !d.isEmpty { return d }      // the actual ask
+            return isStuck ? "still waiting on you" : "needs your input"
         case .done: return "finished — ready for you"
         case .idle: return "idle"
         case .running:
+            if let d = detail, !d.isEmpty {
+                switch tool {
+                case "Bash": return "$ \(d)"
+                case "Edit", "Write", "MultiEdit", "NotebookEdit": return "editing \(d)"
+                case "Read", "NotebookRead": return "reading \(d)"
+                case "Grep", "Glob": return "searching \(d)"
+                case "Task": return "subagent: \(d)"
+                default: return d
+                }
+            }
             switch tool {
             case "Bash": return "running a command"
             case "Edit", "Write", "MultiEdit", "NotebookEdit": return "editing code"

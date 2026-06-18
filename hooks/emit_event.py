@@ -76,6 +76,42 @@ def _log_notification(data, decision):
         pass
 
 
+def _clean_message(msg):
+    """Trim a Notification message into a short 'waiting reason'."""
+    if not msg:
+        return None
+    m = str(msg).strip()
+    if m.lower().startswith("claude "):
+        m = m[len("claude "):]
+    return (m[:60] or None)
+
+
+def _tool_detail(tool, ti):
+    """A short, human label for what a tool is acting on."""
+    if not isinstance(ti, dict):
+        return None
+
+    def base(p):
+        return os.path.basename(str(p).rstrip("/")) or (str(p) or None)
+
+    if tool == "Bash":
+        cmd = (ti.get("command") or "").strip()
+        return cmd[:48] or None
+    if tool in ("Edit", "Write", "MultiEdit", "NotebookEdit", "Read", "NotebookRead"):
+        return base(ti.get("file_path") or ti.get("notebook_path") or "")
+    if tool in ("Grep", "Glob"):
+        return ti.get("pattern")
+    if tool == "LS":
+        return base(ti.get("path") or "")
+    if tool == "Task":
+        return ti.get("description") or ti.get("subagent_type")
+    if tool == "WebFetch":
+        return ti.get("url")
+    if tool == "WebSearch":
+        return ti.get("query")
+    return None
+
+
 def _repo_root(cwd):
     """The git repo root for cwd, so the project label is the repo name
     (stable across subdirectories) rather than whatever folder a tool ran in."""
@@ -98,12 +134,14 @@ def main():
     except Exception:
         data = {}
 
+    detail = None
     if event in NOTIFY_EVENTS:
         idle = _is_idle_nudge(data)
         _log_notification(data, "suppressed-idle" if idle else "needs_input")
         if idle:
             return  # leave the agent's prior state (e.g. "done") untouched
         event = "needs_input"
+        detail = _clean_message(data.get("message"))  # what it's waiting for
 
     cwd = data.get("cwd", "")
     root = _repo_root(cwd) or cwd
@@ -117,6 +155,11 @@ def main():
     tool = data.get("tool_name")
     if tool:
         payload["tool"] = tool
+        d = _tool_detail(tool, data.get("tool_input"))
+        if d:
+            detail = d
+    if detail:
+        payload["detail"] = detail
     term = os.environ.get("TERM_PROGRAM")
     if term:
         payload["term"] = term

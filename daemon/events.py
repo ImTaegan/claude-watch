@@ -19,6 +19,7 @@ def handle_event_body(registry, raw, now):
         term=data.get("term"),
         tty=data.get("tty"),
         cwd=data.get("cwd"),
+        detail=data.get("detail"),
     )
     return registry.aggregate()
 

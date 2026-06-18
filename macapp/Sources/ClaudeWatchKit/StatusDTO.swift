@@ -33,6 +33,7 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
     public let state: Int
     public let ageSeconds: Double
     public let tool: String?
+    public let detail: String?
     public let term: String?
     public let tty: String?
     public let cwd: String?
@@ -43,8 +44,8 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
     public let contextTrend: String?
 
     public init(id: String = "", project: String, state: Int, ageSeconds: Double,
-                tool: String? = nil, term: String? = nil, tty: String? = nil,
-                cwd: String? = nil, waitingSeconds: Double? = nil,
+                tool: String? = nil, detail: String? = nil, term: String? = nil,
+                tty: String? = nil, cwd: String? = nil, waitingSeconds: Double? = nil,
                 contextPct: Int? = nil, contextTokens: Int? = nil,
                 contextSize: Int? = nil, contextTrend: String? = nil) {
         self.id = id
@@ -52,6 +53,7 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
         self.state = state
         self.ageSeconds = ageSeconds
         self.tool = tool
+        self.detail = detail
         self.term = term
         self.tty = tty
         self.cwd = cwd
