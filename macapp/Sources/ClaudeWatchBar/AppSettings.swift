@@ -27,6 +27,10 @@ final class AppSettings: ObservableObject {
     @Published var launchAtLogin: Bool {
         didSet { applyLaunchAtLogin(launchAtLogin) }
     }
+    /// Whether the floating desktop widget is open (restored on next launch).
+    @Published var widgetOpen: Bool {
+        didSet { defaults.set(widgetOpen, forKey: "widgetOpen") }
+    }
 
     private let defaults = UserDefaults.standard
     private var applyingLaunch = false
@@ -35,6 +39,7 @@ final class AppSettings: ObservableObject {
         notificationsEnabled = defaults.object(forKey: "notificationsEnabled") as? Bool ?? true
         soundEnabled = defaults.object(forKey: "soundEnabled") as? Bool ?? true
         usageAlertsEnabled = defaults.object(forKey: "usageAlertsEnabled") as? Bool ?? true
+        widgetOpen = defaults.object(forKey: "widgetOpen") as? Bool ?? false
         launchAtLogin = (SMAppService.mainApp.status == .enabled)
         // didSet doesn't fire during init, so apply the Notifier flags directly.
         Notifier.enabled = notificationsEnabled

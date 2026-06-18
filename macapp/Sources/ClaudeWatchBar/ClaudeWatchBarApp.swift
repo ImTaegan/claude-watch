@@ -9,15 +9,18 @@ struct ClaudeWatchBarApp: App {
         MenuBarExtra {
             PanelView(model: model, settings: settings)
         } label: {
-            if model.payload.counts.needsInput > 0 {
-                // Show the count right in the menu bar so you don't have to open it.
-                Label("\(model.payload.counts.needsInput)", systemImage: "bell.badge.fill")
-            } else if let pct = model.sessionUsagePct, pct >= 90 {
-                // Nothing needs you, but you're about to hit the session limit.
-                Label("\(pct)%", systemImage: "gauge.high")
-            } else {
-                Image(systemName: iconName)
+            Group {
+                if model.payload.counts.needsInput > 0 {
+                    // Show the count right in the menu bar so you don't have to open it.
+                    Label("\(model.payload.counts.needsInput)", systemImage: "bell.badge.fill")
+                } else if let pct = model.sessionUsagePct, pct >= 90 {
+                    // Nothing needs you, but you're about to hit the session limit.
+                    Label("\(pct)%", systemImage: "gauge.high")
+                } else {
+                    Image(systemName: iconName)
+                }
             }
+            .task { WidgetWindow.shared.restoreIfNeeded(model: model, settings: settings) }
         }
         .menuBarExtraStyle(.window)
     }

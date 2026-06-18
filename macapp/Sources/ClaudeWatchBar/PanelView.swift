@@ -60,6 +60,13 @@ struct PanelView: View {
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button {
+                    WidgetWindow.shared.toggle(model: model, settings: settings)
+                } label: {
+                    Image(systemName: "macwindow").foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Pop out as a floating desktop widget")
+                Button {
                     withAnimation(.snappy(duration: 0.2)) { showSettings.toggle() }
                 } label: {
                     Image(systemName: "gearshape.fill")
