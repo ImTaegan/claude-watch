@@ -47,6 +47,24 @@ def test_aggregate_truncates_to_max():
     # most recent running first (last_seen desc within same state)
     assert agg["sessions"][0]["project"] == "p7"
 
+def test_status_counts_and_order():
+    r = SessionRegistry()
+    r.update("s1", "projA", "running", now=100.0)
+    r.update("s2", "projB", "needs_input", now=101.0)
+    st = r.status(now=105.0)
+    assert st["counts"] == {"needs_input": 1, "running": 1, "done": 0, "idle": 0}
+    assert [a["project"] for a in st["agents"]] == ["projB", "projA"]
+    assert st["agents"][0]["state"] == 3
+    assert st["agents"][0]["age_seconds"] == 4.0
+    assert st["agents"][1]["age_seconds"] == 5.0
+
+
+def test_status_empty():
+    st = SessionRegistry().status(now=1.0)
+    assert st["agents"] == []
+    assert st["counts"] == {"needs_input": 0, "running": 0, "done": 0, "idle": 0}
+
+
 def test_gc_removes_stale_only():
     r = SessionRegistry()
     r.update("old", "p1", "running", now=0.0)

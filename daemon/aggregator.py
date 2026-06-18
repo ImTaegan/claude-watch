@@ -52,6 +52,32 @@ class SessionRegistry:
             ],
         }
 
+    def status(self, now):
+        counts = {IDLE: 0, RUNNING: 0, DONE: 0, NEEDS_INPUT: 0}
+        for s in self._sessions.values():
+            counts[s["state"]] += 1
+        ordered = sorted(
+            self._sessions.values(),
+            key=lambda s: (s["state"], s["last_seen"]),
+            reverse=True,
+        )
+        return {
+            "counts": {
+                "needs_input": counts[NEEDS_INPUT],
+                "running": counts[RUNNING],
+                "done": counts[DONE],
+                "idle": counts[IDLE],
+            },
+            "agents": [
+                {
+                    "project": s["project"],
+                    "state": s["state"],
+                    "age_seconds": round(now - s["last_seen"], 1),
+                }
+                for s in ordered
+            ],
+        }
+
     def gc(self, now, idle_timeout):
         stale = [
             sid for sid, s in self._sessions.items()
