@@ -38,6 +38,9 @@ What it does:
 - **Right-click actions**: reveal the project in Finder, copy its path, or focus its terminal.
 - **Animation**: running agents shimmer, waiting agents pulse.
 - **Token usage**: a top summary with your **session (5-hour)** and **weekly** quota bars (% used + reset countdown, color-graded), plus a per-chat **context-fill %** on each row so you can see which chat is getting heavy. Fed by the status line (`hooks/install.sh` appends a one-time reporter to your status line script).
+- **Usage alerts**: notifications when the session window crosses 80% / 95%, the weekly crosses 90%, or any chat's context passes 90% ("consider /compact"). The menu-bar icon shows the session % when you're near the wall.
+- **Burn-rate ETA**: the session bar projects "~25m to limit" from how fast you're consuming.
+- **Context trend** (↑) on chats whose context is climbing, and a **"Today · N tokens out"** total across all sessions.
 - **Settings** (gear in the footer): toggle notifications, sound, and launch-at-login.
 
 How it works: the app polls `GET http://127.0.0.1:7459/status` once per second and
