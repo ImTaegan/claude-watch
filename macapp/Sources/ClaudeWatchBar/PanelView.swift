@@ -59,6 +59,8 @@ struct AgentRow: View {
     let agent: Agent
     @State private var hovered = false
 
+    private var canFocus: Bool { TerminalFocuser.canFocus(agent) }
+
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: agent.activityIcon)
@@ -71,11 +73,17 @@ struct AgentRow: View {
                         .font(.system(size: 13, weight: .semibold))
                         .lineLimit(1)
                     Spacer(minLength: 6)
-                    Text(agent.timeText)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                    if hovered && canFocus {
+                        Image(systemName: "arrow.up.forward.app.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(agent.timeText)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                Text(agent.activityText)
+                Text(hovered && canFocus ? "click to focus terminal" : agent.activityText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -85,9 +93,16 @@ struct AgentRow: View {
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 7)
-                .fill(Color.primary.opacity(hovered ? 0.08 : 0))
+                .fill(Color.primary.opacity(hovered ? 0.10 : 0))
         )
-        .onHover { hovered = $0 }
+        .contentShape(Rectangle())
+        .onTapGesture { TerminalFocuser.focus(agent) }
+        .help(canFocus ? "Click to focus \(agent.project)'s terminal" : agent.project)
+        .onHover { inside in
+            hovered = inside
+            if inside && canFocus { NSCursor.pointingHand.push() }
+            else { NSCursor.pop() }
+        }
     }
 }
 
