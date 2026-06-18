@@ -36,6 +36,21 @@ def make_handler(state, idle_timeout):
         def log_message(self, *args):
             pass
 
+        def do_GET(self):
+            if self.path != "/status":
+                self.send_response(404)
+                self.end_headers()
+                return
+            now = time.time()
+            with state.lock:
+                state.registry.gc(now, idle_timeout)
+                body = json.dumps(state.registry.status(now)).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
         def do_POST(self):
             length = int(self.headers.get("Content-Length", 0))
             raw = self.rfile.read(length)
@@ -81,6 +96,10 @@ async def mock_writer(payload):
     print(json.dumps(payload), flush=True)
 
 
+async def noop_writer(payload):
+    pass
+
+
 def build_arg_parser():
     p = argparse.ArgumentParser(description="Claude Watcher daemon")
     p.add_argument("--mock", action="store_true", help="print payloads instead of BLE")
@@ -116,7 +135,11 @@ def main():
 
 async def _run_ble(args):
     from ble import make_ble_writer
-    writer = await make_ble_writer(args)
+    try:
+        writer = await make_ble_writer(args)
+    except SystemExit as e:
+        print(f"[daemon] {e}; serving HTTP only (no watch)", file=sys.stderr)
+        writer = noop_writer
     await run(args, writer)
 
 

@@ -23,6 +23,34 @@ def _post(port, body):
     )
     urllib.request.urlopen(req, timeout=2).read()
 
+def _get(port, path):
+    raw = urllib.request.urlopen(f"http://127.0.0.1:{port}{path}", timeout=2).read()
+    return json.loads(raw)
+
+
+def test_status_endpoint_reports_agents():
+    port = _free_port()
+    proc = subprocess.Popen(
+        [sys.executable, str(DAEMON), "--mock", "--port", str(port),
+         "--debounce", "0.05"],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+    )
+    try:
+        time.sleep(1.0)
+        _post(port, {"session_id": "s1", "event": "running", "cwd": "/x/projA"})
+        _post(port, {"session_id": "s2", "event": "needs_input", "cwd": "/x/projB"})
+        time.sleep(0.3)
+        status = _get(port, "/status")
+    finally:
+        proc.terminate()
+        proc.communicate(timeout=5)
+    assert status["counts"]["running"] == 1
+    assert status["counts"]["needs_input"] == 1
+    assert status["agents"][0]["project"] == "projB"
+    assert status["agents"][0]["state"] == 3
+    assert all("age_seconds" in a for a in status["agents"])
+
+
 def test_mock_emits_payload_lines():
     port = _free_port()
     proc = subprocess.Popen(
