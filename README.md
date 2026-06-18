@@ -35,6 +35,7 @@ What it does:
 - **Notifications**: a sound + banner the moment an agent needs input or finishes.
 - **Stuck detection**: an agent waiting on you 5+ minutes turns red so you don't forget it.
 - **Click to focus**: click any row to jump to that agent's terminal tab (iTerm/Terminal by tty; VS Code is brought forward).
+- **Right-click actions**: reveal the project in Finder, copy its path, or focus its terminal.
 - **Animation**: running agents shimmer, waiting agents pulse.
 - **Settings** (gear in the footer): toggle notifications, sound, and launch-at-login.
 
