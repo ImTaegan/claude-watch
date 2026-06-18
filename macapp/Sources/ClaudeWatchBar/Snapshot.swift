@@ -5,7 +5,7 @@ import ClaudeWatchKit
 /// translucent material is visible. Used for visual verification / README.
 @MainActor
 enum Snapshot {
-    static func write(to path: String) {
+    static func mockModel() -> StatusModel {
         let now = Date().timeIntervalSince1970
         let model = StatusModel()
         model.connected = true
@@ -38,18 +38,37 @@ enum Snapshot {
             ),
             todayOutputTokens: 1_240_000
         )
+        return model
+    }
 
+    static func write(to path: String) {
         let content = ZStack {
-            LinearGradient(
-                colors: [.purple, .pink, .orange],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            PanelView(model: model, settings: AppSettings(), scrolls: false)
+            backdrop
+            PanelView(model: mockModel(), settings: AppSettings(), scrolls: false)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(28)
         }
         .fixedSize()
+        render(content, to: path)
+    }
 
+    static func writeWidget(to path: String) {
+        let content = ZStack {
+            backdrop
+            WidgetView(model: mockModel(), scrolls: false)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(28)
+        }
+        .fixedSize()
+        render(content, to: path)
+    }
+
+    private static var backdrop: some View {
+        LinearGradient(colors: [.purple, .pink, .orange],
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    private static func render(_ content: some View, to path: String) {
         let renderer = ImageRenderer(content: content)
         renderer.scale = 2
         guard let cg = renderer.cgImage else {

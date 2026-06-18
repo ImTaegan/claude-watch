@@ -14,6 +14,10 @@ if let i = CommandLine.arguments.firstIndex(of: "--snapshot") {
         ? CommandLine.arguments[i + 1]
         : "panel.png"
     MainActor.assumeIsolated { Snapshot.write(to: path) }
+} else if let i = CommandLine.arguments.firstIndex(of: "--snapshot-widget") {
+    let path = i + 1 < CommandLine.arguments.count
+        ? CommandLine.arguments[i + 1] : "widget.png"
+    MainActor.assumeIsolated { Snapshot.writeWidget(to: path) }
 } else if CommandLine.arguments.contains("--active-check") {
     // Diagnostic: report whether an agent's terminal is the one being viewed.
     let agent = Agent(project: argValue("--project") ?? "", state: 3,

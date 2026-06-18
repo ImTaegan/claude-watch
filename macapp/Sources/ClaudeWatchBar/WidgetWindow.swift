@@ -35,9 +35,11 @@ final class WidgetWindow {
 
     private func show(model: StatusModel, settings: AppSettings) {
         if panel == nil {
-            let root = PanelView(model: model, settings: settings)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+            let root = WidgetView(model: model,
+                                  onClose: { [weak self] in self?.toggle(model: model, settings: settings) })
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             let host = NSHostingController(rootView: AnyView(root))
+            host.sizingOptions = [.preferredContentSize]  // window tracks content size
             let p = KeyablePanel(contentViewController: host)
             p.styleMask = [.borderless, .nonactivatingPanel]
             p.isFloatingPanel = true
