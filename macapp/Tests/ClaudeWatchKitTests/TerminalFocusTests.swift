@@ -48,6 +48,26 @@ final class TerminalFocusTests: XCTestCase {
         XCTAssertFalse(s!.contains("do shell script"))
     }
 
+    func testFocusActionVSCodeOpensProjectFolder() {
+        let a = focusAction(term: "vscode", tty: "/dev/ttys008", cwd: "/Users/me/proj")
+        XCTAssertEqual(a, .openApp(bundleId: "com.microsoft.VSCode", path: "/Users/me/proj"))
+    }
+
+    func testFocusActionVSCodeNoCwdJustActivates() {
+        let a = focusAction(term: "vscode", tty: nil, cwd: nil)
+        XCTAssertEqual(a, .openApp(bundleId: "com.microsoft.VSCode", path: nil))
+    }
+
+    func testFocusActionITermUsesAppleScript() {
+        let a = focusAction(term: "iTerm.app", tty: "/dev/ttys003", cwd: "/x")
+        guard case .appleScript(let s) = a else { return XCTFail("expected appleScript") }
+        XCTAssertTrue(s.contains("/dev/ttys003"))
+    }
+
+    func testFocusActionUnknownNoTTYIsNone() {
+        XCTAssertEqual(focusAction(term: "Hyper", tty: nil, cwd: nil), .none)
+    }
+
     func testSafeTTYValidation() {
         XCTAssertTrue(isSafeTTY("/dev/ttys003"))
         XCTAssertTrue(isSafeTTY("/dev/tty"))

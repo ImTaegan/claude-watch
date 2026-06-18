@@ -37,10 +37,15 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
     public let tty: String?
     public let cwd: String?
     public let waitingSeconds: Double?
+    public let contextPct: Int?
+    public let contextTokens: Int?
+    public let contextSize: Int?
 
     public init(id: String = "", project: String, state: Int, ageSeconds: Double,
                 tool: String? = nil, term: String? = nil, tty: String? = nil,
-                cwd: String? = nil, waitingSeconds: Double? = nil) {
+                cwd: String? = nil, waitingSeconds: Double? = nil,
+                contextPct: Int? = nil, contextTokens: Int? = nil,
+                contextSize: Int? = nil) {
         self.id = id
         self.project = project
         self.state = state
@@ -50,17 +55,42 @@ public struct Agent: Codable, Equatable, Sendable, Identifiable {
         self.tty = tty
         self.cwd = cwd
         self.waitingSeconds = waitingSeconds
+        self.contextPct = contextPct
+        self.contextTokens = contextTokens
+        self.contextSize = contextSize
     }
 
     public var agentState: AgentState { AgentState(rawValue: state) ?? .idle }
 }
 
+public struct LimitWindow: Codable, Equatable, Sendable {
+    public let usedPercentage: Int
+    public let resetsAt: Double
+
+    public init(usedPercentage: Int, resetsAt: Double) {
+        self.usedPercentage = usedPercentage
+        self.resetsAt = resetsAt
+    }
+}
+
+public struct Limits: Codable, Equatable, Sendable {
+    public let fiveHour: LimitWindow?
+    public let sevenDay: LimitWindow?
+
+    public init(fiveHour: LimitWindow?, sevenDay: LimitWindow?) {
+        self.fiveHour = fiveHour
+        self.sevenDay = sevenDay
+    }
+}
+
 public struct StatusPayload: Codable, Equatable, Sendable {
     public let counts: Counts
     public let agents: [Agent]
+    public let limits: Limits?
 
-    public init(counts: Counts, agents: [Agent]) {
+    public init(counts: Counts, agents: [Agent], limits: Limits? = nil) {
         self.counts = counts
         self.agents = agents
+        self.limits = limits
     }
 }

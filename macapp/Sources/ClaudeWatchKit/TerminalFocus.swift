@@ -5,6 +5,27 @@ import Foundation
 /// VS Code (no AppleScript access to integrated terminals) we just activate the
 /// editor. Every branch is guarded by `is running` so we never launch a
 /// terminal the user doesn't actually use. Returns nil when nothing can be done.
+/// How to bring an agent's editor/terminal to the front.
+public enum FocusAction: Equatable, Sendable {
+    case appleScript(String)              // run via osascript (iTerm/Terminal)
+    case openApp(bundleId: String, path: String?)  // `open -b <id> [path]`
+    case none
+}
+
+/// Decide how to focus an agent. VS Code can't expose its integrated terminal
+/// tabs to AppleScript, but opening the project folder raises the existing
+/// window for that folder — so we focus the right *project window* by cwd.
+/// iTerm/Terminal are matched precisely by tty.
+public func focusAction(term: String?, tty: String?, cwd: String?) -> FocusAction {
+    if term == "vscode" {
+        return .openApp(bundleId: "com.microsoft.VSCode", path: cwd)
+    }
+    if let script = terminalFocusScript(term: term, tty: tty) {
+        return .appleScript(script)
+    }
+    return .none
+}
+
 /// A real tty device is "/dev/tty…" with only alphanumerics after. Anything
 /// else can't be a tty we'd match on, and refusing it keeps unexpected input
 /// from being interpolated into the AppleScript literal.

@@ -6,6 +6,7 @@ import ClaudeWatchKit
 @MainActor
 enum Snapshot {
     static func write(to path: String) {
+        let now = Date().timeIntervalSince1970
         let model = StatusModel()
         model.connected = true
         model.payload = StatusPayload(
@@ -13,19 +14,23 @@ enum Snapshot {
             agents: [
                 Agent(id: "a", project: "compile-me", state: 3, ageSeconds: 8,
                       tool: "Bash", term: "iTerm.app", tty: "/dev/ttys003",
-                      waitingSeconds: 92),
+                      waitingSeconds: 92, contextPct: 64),
                 Agent(id: "f", project: "api-gateway", state: 3, ageSeconds: 410,
                       tool: "Edit", term: "Apple_Terminal", tty: "/dev/ttys006",
-                      waitingSeconds: 410),
+                      waitingSeconds: 410, contextPct: 88),
                 Agent(id: "b", project: "claude-watchh", state: 1, ageSeconds: 142,
-                      tool: "Edit", term: "vscode"),
+                      tool: "Edit", term: "vscode", contextPct: 92),
                 Agent(id: "c", project: "growth-saloon", state: 1, ageSeconds: 17,
-                      tool: "Bash", term: "iTerm.app"),
+                      tool: "Bash", term: "iTerm.app", contextPct: 31),
                 Agent(id: "d", project: "gs-referral", state: 2, ageSeconds: 4,
-                      tool: "Read", term: "Apple_Terminal"),
+                      tool: "Read", term: "Apple_Terminal", contextPct: 47),
                 Agent(id: "e", project: "watch-firmware", state: 0, ageSeconds: 905,
-                      tool: "Grep"),
-            ]
+                      tool: "Grep", contextPct: 12),
+            ],
+            limits: Limits(
+                fiveHour: LimitWindow(usedPercentage: 72, resetsAt: now + 9600),
+                sevenDay: LimitWindow(usedPercentage: 38, resetsAt: now + 6 * 86400)
+            )
         )
 
         let content = ZStack {

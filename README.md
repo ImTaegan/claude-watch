@@ -37,6 +37,7 @@ What it does:
 - **Click to focus**: click any row to jump to that agent's terminal tab (iTerm/Terminal by tty; VS Code is brought forward).
 - **Right-click actions**: reveal the project in Finder, copy its path, or focus its terminal.
 - **Animation**: running agents shimmer, waiting agents pulse.
+- **Token usage**: a top summary with your **session (5-hour)** and **weekly** quota bars (% used + reset countdown, color-graded), plus a per-chat **context-fill %** on each row so you can see which chat is getting heavy. Fed by the status line (`hooks/install.sh` appends a one-time reporter to your status line script).
 - **Settings** (gear in the footer): toggle notifications, sound, and launch-at-login.
 
 How it works: the app polls `GET http://127.0.0.1:7459/status` once per second and

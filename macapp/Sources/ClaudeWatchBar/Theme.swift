@@ -12,6 +12,25 @@ extension AgentState {
     }
 }
 
+extension UsageTier {
+    /// Text/number tint. Normal stays neutral so only warning/critical pop.
+    var color: Color {
+        switch self {
+        case .normal: return .secondary
+        case .warning: return .orange
+        case .critical: return .red
+        }
+    }
+    /// Progress-bar fill — visible even when normal.
+    var barColor: Color {
+        switch self {
+        case .normal: return .blue
+        case .warning: return .orange
+        case .critical: return .red
+        }
+    }
+}
+
 func relativeAge(_ seconds: Double) -> String {
     if seconds < 60 { return "\(Int(seconds))s" }
     if seconds < 3600 { return "\(Int(seconds / 60))m" }

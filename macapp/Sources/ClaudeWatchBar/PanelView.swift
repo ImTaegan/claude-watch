@@ -26,6 +26,9 @@ struct PanelView: View {
                 Spacer()
                 CountPills(counts: model.payload.counts)
             }
+            if let limits = model.payload.limits {
+                UsageSummaryView(limits: limits, now: Date().timeIntervalSince1970)
+            }
             Divider().opacity(0.4)
             if model.payload.agents.isEmpty {
                 Text(model.connected ? "No active agents" : "Waiting for daemon…")
@@ -93,6 +96,12 @@ struct AgentRow: View {
                         .font(.system(size: 13, weight: .semibold))
                         .lineLimit(1)
                     Spacer(minLength: 6)
+                    if let pct = agent.contextPct {
+                        Text("\(pct)%")
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(usageTier(pct) == .normal ? .secondary : usageTier(pct).color)
+                            .help("context: \(agent.contextTokens ?? 0) of \(agent.contextSize ?? 0) tokens")
+                    }
                     if hovered && canFocus {
                         Image(systemName: "arrow.up.forward.app.fill")
                             .font(.caption2)
