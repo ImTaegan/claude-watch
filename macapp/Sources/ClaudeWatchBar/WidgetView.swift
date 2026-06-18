@@ -59,13 +59,13 @@ struct ContextRing: View {
     let pct: Int
     var body: some View {
         ZStack {
-            Circle().stroke(Color.primary.opacity(0.18), lineWidth: 2)
+            Circle().stroke(Color.primary.opacity(0.18), lineWidth: 1.5)
             Circle()
                 .trim(from: 0, to: CGFloat(pct) / 100)
-                .stroke(Color.white, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .stroke(Color.white, style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }
-        .frame(width: 12, height: 12)
+        .frame(width: 9, height: 9)
         .help("context \(pct)%")
     }
 }
