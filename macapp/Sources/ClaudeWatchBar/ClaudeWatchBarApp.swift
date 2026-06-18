@@ -12,6 +12,9 @@ struct ClaudeWatchBarApp: App {
             if model.payload.counts.needsInput > 0 {
                 // Show the count right in the menu bar so you don't have to open it.
                 Label("\(model.payload.counts.needsInput)", systemImage: "bell.badge.fill")
+            } else if let pct = model.sessionUsagePct, pct >= 90 {
+                // Nothing needs you, but you're about to hit the session limit.
+                Label("\(pct)%", systemImage: "gauge.high")
             } else {
                 Image(systemName: iconName)
             }

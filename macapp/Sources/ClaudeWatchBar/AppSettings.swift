@@ -18,6 +18,12 @@ final class AppSettings: ObservableObject {
             Notifier.soundEnabled = soundEnabled
         }
     }
+    @Published var usageAlertsEnabled: Bool {
+        didSet {
+            defaults.set(usageAlertsEnabled, forKey: "usageAlertsEnabled")
+            Notifier.usageAlertsEnabled = usageAlertsEnabled
+        }
+    }
     @Published var launchAtLogin: Bool {
         didSet { applyLaunchAtLogin(launchAtLogin) }
     }
@@ -28,10 +34,12 @@ final class AppSettings: ObservableObject {
     init() {
         notificationsEnabled = defaults.object(forKey: "notificationsEnabled") as? Bool ?? true
         soundEnabled = defaults.object(forKey: "soundEnabled") as? Bool ?? true
+        usageAlertsEnabled = defaults.object(forKey: "usageAlertsEnabled") as? Bool ?? true
         launchAtLogin = (SMAppService.mainApp.status == .enabled)
         // didSet doesn't fire during init, so apply the Notifier flags directly.
         Notifier.enabled = notificationsEnabled
         Notifier.soundEnabled = soundEnabled
+        Notifier.usageAlertsEnabled = usageAlertsEnabled
     }
 
     private func applyLaunchAtLogin(_ on: Bool) {

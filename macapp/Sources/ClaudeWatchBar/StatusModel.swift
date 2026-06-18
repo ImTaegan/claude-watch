@@ -8,6 +8,8 @@ final class StatusModel: ObservableObject {
 
     private var lastStates: [String: AgentState] = [:]
     private var hasBaseline = false
+    private var usageFired: Set<String> = []
+    private var usageHasBaseline = false
 
     private let url = URL(string: "http://127.0.0.1:7459/status")!
     private let decoder: JSONDecoder = {
@@ -43,6 +45,7 @@ final class StatusModel: ObservableObject {
             }
             let decoded = try decoder.decode(StatusPayload.self, from: data)
             fireTransitions(decoded.agents)
+            fireUsageAlerts(decoded)
             payload = decoded
             connected = true
         } catch {
@@ -66,6 +69,25 @@ final class StatusModel: ObservableObject {
         for a in agents { lastStates[a.id] = a.agentState }
         hasBaseline = true
     }
+
+    /// Fire notifications when usage crosses thresholds (session 80/95, weekly
+    /// 90, per-chat context 90). First poll only establishes a baseline.
+    private func fireUsageAlerts(_ p: StatusPayload) {
+        let alerts = detectUsageAlerts(
+            p, sessionThresholds: [80, 95], weeklyThresholds: [90],
+            contextThreshold: 90, fired: &usageFired, hasBaseline: usageHasBaseline)
+        for alert in alerts {
+            switch alert {
+            case .session(let pct): Notifier.sessionUsage(pct: pct)
+            case .weekly(let pct): Notifier.weeklyUsage(pct: pct)
+            case .context(let project, let pct):
+                Notifier.contextHigh(project: project, pct: pct)
+            }
+        }
+        usageHasBaseline = true
+    }
+
+    var sessionUsagePct: Int? { payload.limits?.fiveHour?.usedPercentage }
 
     var worstState: AgentState? {
         if payload.counts.needsInput > 0 { return .needsInput }

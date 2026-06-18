@@ -151,6 +151,8 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle("Notify on needs-input / done", isOn: $settings.notificationsEnabled)
+            Toggle("Usage alerts (limits & context)", isOn: $settings.usageAlertsEnabled)
+                .disabled(!settings.notificationsEnabled)
             Toggle("Play a sound", isOn: $settings.soundEnabled)
                 .disabled(!settings.notificationsEnabled)
             Toggle("Launch at login", isOn: $settings.launchAtLogin)

@@ -6,6 +6,7 @@ import Foundation
 enum Notifier {
     static var enabled = true
     static var soundEnabled = true
+    static var usageAlertsEnabled = true
 
     static func needsInput(project: String) {
         post(title: "\(project) needs you",
@@ -17,6 +18,24 @@ enum Notifier {
         post(title: "\(project) finished",
              body: "An agent just completed its task.",
              sound: "Glass")
+    }
+
+    static func sessionUsage(pct: Int) {
+        guard usageAlertsEnabled else { return }
+        post(title: "Session usage \(pct)%",
+             body: "Approaching your 5-hour limit.", sound: "Funk")
+    }
+
+    static func weeklyUsage(pct: Int) {
+        guard usageAlertsEnabled else { return }
+        post(title: "Weekly usage \(pct)%",
+             body: "Approaching your weekly limit.", sound: "Funk")
+    }
+
+    static func contextHigh(project: String, pct: Int) {
+        guard usageAlertsEnabled else { return }
+        post(title: "\(project) context \(pct)%",
+             body: "Consider /compact or a fresh session.", sound: "Tink")
     }
 
     private static func post(title: String, body: String, sound: String) {
