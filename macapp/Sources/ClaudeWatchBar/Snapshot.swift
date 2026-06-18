@@ -9,11 +9,14 @@ enum Snapshot {
         let model = StatusModel()
         model.connected = true
         model.payload = StatusPayload(
-            counts: Counts(needsInput: 1, running: 2, done: 1, idle: 1),
+            counts: Counts(needsInput: 2, running: 2, done: 1, idle: 1),
             agents: [
                 Agent(id: "a", project: "compile-me", state: 3, ageSeconds: 8,
                       tool: "Bash", term: "iTerm.app", tty: "/dev/ttys003",
-                      waitingSeconds: 222),
+                      waitingSeconds: 92),
+                Agent(id: "f", project: "api-gateway", state: 3, ageSeconds: 410,
+                      tool: "Edit", term: "Apple_Terminal", tty: "/dev/ttys006",
+                      waitingSeconds: 410),
                 Agent(id: "b", project: "claude-watchh", state: 1, ageSeconds: 142,
                       tool: "Edit", term: "vscode"),
                 Agent(id: "c", project: "growth-saloon", state: 1, ageSeconds: 17,

@@ -43,7 +43,7 @@ extension Agent {
     /// Human-readable description of what the agent is doing right now.
     var activityText: String {
         switch agentState {
-        case .needsInput: return "needs your input"
+        case .needsInput: return isStuck ? "still waiting on you" : "needs your input"
         case .done: return "finished — ready for you"
         case .idle: return "idle"
         case .running:
@@ -68,5 +68,15 @@ extension Agent {
             return relativeAge(w)
         }
         return relativeAge(ageSeconds)
+    }
+
+    /// An agent that's been waiting on you for 5+ minutes — easy to forget.
+    var isStuck: Bool {
+        agentState == .needsInput && (waitingSeconds ?? 0) >= 300
+    }
+
+    /// Row tint: stuck agents go red to pull your eye.
+    var displayColor: Color {
+        isStuck ? .red : agentState.color
     }
 }

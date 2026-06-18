@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "ClaudeWatchBar",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v14)],
     targets: [
         .target(name: "ClaudeWatchKit"),
         .executableTarget(name: "ClaudeWatchBar", dependencies: ["ClaudeWatchKit"]),

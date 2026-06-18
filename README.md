@@ -29,15 +29,25 @@ Build and run:
 cd macapp && ./build.sh && open ClaudeWatchBar.app
 ```
 
-The app polls `GET http://127.0.0.1:7459/status` once per second and shows
-"daemon offline" when it can't reach the daemon. The daemon serves this endpoint
-with or without the hardware watch — `python claude_watch_daemon.py --mock` is
-enough to drive the menu bar app on its own. The menu bar icon reflects the
-worst-case state (a bell when any agent needs input), and the dropdown lists
-each agent with a status dot, project name, and relative time.
+What it does:
+- **Live dashboard**: each agent row shows a tool-aware icon (terminal, pencil, magnifier…), the project, what it's doing ("running a command", "editing code"), and how long.
+- **Menu bar badge**: the bar icon shows the count of agents waiting on you, so a glance is enough.
+- **Notifications**: a sound + banner the moment an agent needs input or finishes.
+- **Stuck detection**: an agent waiting on you 5+ minutes turns red so you don't forget it.
+- **Click to focus**: click any row to jump to that agent's terminal tab (iTerm/Terminal by tty; VS Code is brought forward).
+- **Animation**: running agents shimmer, waiting agents pulse.
 
-Requires macOS 13+. The `build.sh` script compiles with SwiftPM and assembles a
+How it works: the app polls `GET http://127.0.0.1:7459/status` once per second and
+shows "daemon offline" when it can't reach the daemon. The daemon serves this
+endpoint with or without the hardware watch — `python claude_watch_daemon.py
+--mock` is enough to drive the menu bar app on its own.
+
+Requires macOS 14+. The `build.sh` script compiles with SwiftPM and assembles a
 menu-bar-only (`LSUIElement`) `.app` bundle — no Xcode GUI needed.
+
+**Click-to-focus permission:** the first time you click a row, macOS asks to let
+ClaudeWatchBar control your terminal (Automation permission). Approve it once and
+focusing works thereafter. It never launches a terminal that isn't already open.
 
 ## Architecture
 hooks (python3/urllib, 1s timeout) -> daemon (127.0.0.1:7459, aggregates)

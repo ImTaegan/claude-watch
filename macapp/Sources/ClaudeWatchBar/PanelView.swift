@@ -11,8 +11,10 @@ struct PanelView: View {
         VStack(spacing: 2) {
             ForEach(model.payload.agents) { agent in
                 AgentRow(agent: agent)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .animation(.snappy(duration: 0.25), value: model.payload.agents)
     }
 
     var body: some View {
@@ -65,8 +67,12 @@ struct AgentRow: View {
         HStack(spacing: 10) {
             Image(systemName: agent.activityIcon)
                 .font(.system(size: 15))
-                .foregroundStyle(agent.agentState.color)
+                .foregroundStyle(agent.displayColor)
                 .frame(width: 20)
+                .symbolEffect(.variableColor.iterative, options: .repeating,
+                              isActive: agent.agentState == .running)
+                .symbolEffect(.pulse, options: .repeating,
+                              isActive: agent.agentState == .needsInput)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
                     Text(agent.project)
@@ -93,7 +99,8 @@ struct AgentRow: View {
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 7)
-                .fill(Color.primary.opacity(hovered ? 0.10 : 0))
+                .fill(agent.isStuck ? Color.red.opacity(0.12)
+                                    : Color.primary.opacity(hovered ? 0.10 : 0))
         )
         .contentShape(Rectangle())
         .onTapGesture { TerminalFocuser.focus(agent) }
