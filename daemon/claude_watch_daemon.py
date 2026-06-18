@@ -15,7 +15,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from aggregator import SessionRegistry
-from events import handle_event_body
+from events import handle_event_body, handle_usage_body
 
 DEVICE_NAME = "ClaudeWatch"
 SERVICE_UUID = "c1a0de00-0001-4a00-b000-000000000001"
@@ -66,13 +66,18 @@ def make_handler(state, idle_timeout):
             try:
                 with state.lock:
                     state.registry.gc(now, idle_timeout)
-                    payload = handle_event_body(state.registry, raw, now)
-                    state.latest_payload = payload
+                    if self.path == "/usage":
+                        handle_usage_body(state.registry, raw, now)
+                    else:
+                        state.latest_payload = handle_event_body(
+                            state.registry, raw, now)
             except Exception:
                 self.send_response(400)
                 self.end_headers()
                 return
-            state.loop.call_soon_threadsafe(state.dirty.set)
+            # Usage reports don't change the watch payload, so don't wake the pusher.
+            if self.path != "/usage":
+                state.loop.call_soon_threadsafe(state.dirty.set)
             self.send_response(204)
             self.end_headers()
 

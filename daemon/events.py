@@ -21,3 +21,23 @@ def handle_event_body(registry, raw, now):
         cwd=data.get("cwd"),
     )
     return registry.aggregate()
+
+
+def _window(data, prefix):
+    pct = data.get(f"{prefix}_pct")
+    if pct is None:
+        return None
+    return {"used_percentage": pct, "resets_at": data.get(f"{prefix}_resets_at")}
+
+
+def handle_usage_body(registry, raw, now):
+    """Status-line usage report: per-session context + account rate limits."""
+    data = json.loads(raw)
+    registry.update_usage(
+        data["session_id"], now,
+        context_pct=data.get("context_pct"),
+        context_tokens=data.get("context_tokens"),
+        context_size=data.get("context_size"),
+        five_hour=_window(data, "five_hour"),
+        seven_day=_window(data, "seven_day"),
+    )

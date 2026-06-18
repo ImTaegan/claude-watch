@@ -1,6 +1,6 @@
 import json
 from aggregator import SessionRegistry, RUNNING
-from events import handle_event_body, project_from_cwd
+from events import handle_event_body, handle_usage_body, project_from_cwd
 
 def test_handle_event_body_passes_optional_fields():
     r = SessionRegistry()
@@ -14,6 +14,31 @@ def test_handle_event_body_passes_optional_fields():
     assert a["term"] == "iTerm.app"
     assert a["tty"] == "/dev/ttys003"
     assert a["cwd"] == "/x/proj"
+
+
+def test_handle_usage_body_stores_context_and_limits():
+    r = SessionRegistry()
+    r.update("s1", "projA", "running", now=1.0)
+    raw = json.dumps({
+        "session_id": "s1", "cwd": "/x/projA",
+        "context_pct": 35, "context_tokens": 351590, "context_size": 1000000,
+        "five_hour_pct": 38, "five_hour_resets_at": 1781798400,
+        "seven_day_pct": 5, "seven_day_resets_at": 1782378000,
+    })
+    handle_usage_body(r, raw, now=2.0)
+    st = r.status(now=2.0)
+    assert st["agents"][0]["context_pct"] == 35
+    assert st["limits"]["five_hour"] == {"used_percentage": 38, "resets_at": 1781798400}
+    assert st["limits"]["seven_day"]["used_percentage"] == 5
+
+
+def test_handle_usage_body_without_limits_leaves_them_none():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=1.0)
+    handle_usage_body(r, json.dumps({"session_id": "s1", "context_pct": 12}), now=2.0)
+    st = r.status(now=2.0)
+    assert st["agents"][0]["context_pct"] == 12
+    assert st["limits"] is None
 
 
 def test_project_from_cwd():

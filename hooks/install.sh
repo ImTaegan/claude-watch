@@ -40,5 +40,21 @@ print(f"Merged Claude Watcher hooks into {settings_path}")
 print(f"Hook script: {emit}")
 PY
 
+# Append the status-line usage reporter (token/quota bars) to the configured
+# status line script, idempotently (guarded by a marker comment).
+SL_SNIPPET="${SCRIPT_DIR}/statusline.usage.snippet.sh"
+SL_SCRIPT="$(python3 -c "import json,os; s=json.load(open(os.path.expanduser('~/.claude/settings.json'))); c=(s.get('statusLine') or {}).get('command',''); print(os.path.expanduser(c) if c else '')" 2>/dev/null || true)"
+if [ -n "$SL_SCRIPT" ] && [ -f "$SL_SCRIPT" ]; then
+  if grep -q "claude-watch usage" "$SL_SCRIPT"; then
+    echo "Status line usage reporter already present in $SL_SCRIPT"
+  else
+    printf '\n' >> "$SL_SCRIPT"
+    cat "$SL_SNIPPET" >> "$SL_SCRIPT"
+    echo "Appended usage reporter to $SL_SCRIPT"
+  fi
+else
+  echo "No status line script configured; token/quota bars need one (see README)."
+fi
+
 echo "Done. Backup saved alongside settings.json."
 echo "Restart Claude Code sessions for the new hooks to take effect."

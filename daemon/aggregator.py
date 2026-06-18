@@ -17,6 +17,10 @@ class SessionRegistry:
     def __init__(self):
         # session_id -> {"project": str, "state": int, "last_seen": float}
         self._sessions = {}
+        # session_id -> {context_pct, context_tokens, context_size, last_seen}
+        self._usage = {}
+        # account-global rate limits (latest status-line report wins), or None
+        self._limits = None
 
     def update(self, session_id, project, event, now,
                tool=None, term=None, tty=None, cwd=None):
@@ -72,6 +76,23 @@ class SessionRegistry:
             ],
         }
 
+    def update_usage(self, session_id, now, context_pct=None,
+                     context_tokens=None, context_size=None,
+                     five_hour=None, seven_day=None):
+        self._usage[session_id] = {
+            "context_pct": context_pct,
+            "context_tokens": context_tokens,
+            "context_size": context_size,
+            "last_seen": now,
+        }
+        # Rate limits are account-global; the most recent report wins.
+        if five_hour or seven_day:
+            self._limits = {
+                "five_hour": five_hour,
+                "seven_day": seven_day,
+                "updated_at": now,
+            }
+
     def status(self, now):
         counts = {IDLE: 0, RUNNING: 0, DONE: 0, NEEDS_INPUT: 0}
         for s in self._sessions.values():
@@ -88,6 +109,7 @@ class SessionRegistry:
                 "done": counts[DONE],
                 "idle": counts[IDLE],
             },
+            "limits": self._limits,
             "agents": [
                 {
                     "id": sid,
@@ -100,6 +122,9 @@ class SessionRegistry:
                     "cwd": s.get("cwd"),
                     "waiting_seconds": (round(now - s["waiting_since"], 1)
                                         if s.get("waiting_since") else None),
+                    "context_pct": self._usage.get(sid, {}).get("context_pct"),
+                    "context_tokens": self._usage.get(sid, {}).get("context_tokens"),
+                    "context_size": self._usage.get(sid, {}).get("context_size"),
                 }
                 for sid, s in ordered
             ],
@@ -112,4 +137,10 @@ class SessionRegistry:
         ]
         for sid in stale:
             del self._sessions[sid]
+        stale_usage = [
+            sid for sid, u in self._usage.items()
+            if now - u["last_seen"] > idle_timeout
+        ]
+        for sid in stale_usage:
+            del self._usage[sid]
         return stale

@@ -51,6 +51,39 @@ def test_status_endpoint_reports_agents():
     assert all("age_seconds" in a for a in status["agents"])
 
 
+def _post_to(port, path, body):
+    req = urllib.request.Request(
+        f"http://127.0.0.1:{port}{path}",
+        data=json.dumps(body).encode(), method="POST",
+    )
+    urllib.request.urlopen(req, timeout=2).read()
+
+
+def test_usage_endpoint_updates_status():
+    port = _free_port()
+    proc = subprocess.Popen(
+        [sys.executable, str(DAEMON), "--mock", "--port", str(port),
+         "--debounce", "0.05"],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+    )
+    try:
+        time.sleep(1.0)
+        _post(port, {"session_id": "u1", "event": "running", "cwd": "/x/proj"})
+        _post_to(port, "/usage", {
+            "session_id": "u1", "context_pct": 42,
+            "five_hour_pct": 50, "five_hour_resets_at": 111,
+            "seven_day_pct": 7, "seven_day_resets_at": 222,
+        })
+        time.sleep(0.3)
+        status = _get(port, "/status")
+    finally:
+        proc.terminate()
+        proc.communicate(timeout=5)
+    assert status["limits"]["five_hour"]["used_percentage"] == 50
+    a = [x for x in status["agents"] if x["id"] == "u1"][0]
+    assert a["context_pct"] == 42
+
+
 def test_mock_emits_payload_lines():
     port = _free_port()
     proc = subprocess.Popen(

@@ -98,6 +98,38 @@ def test_update_preserves_term_tty_tool_when_not_resent():
     assert a["tool"] == "Bash"
 
 
+def test_update_usage_and_status_limits():
+    r = SessionRegistry()
+    r.update("s1", "projA", "running", now=100.0)
+    r.update_usage("s1", now=101.0, context_pct=35,
+                   context_tokens=351590, context_size=1000000,
+                   five_hour={"used_percentage": 38, "resets_at": 1781798400},
+                   seven_day={"used_percentage": 5, "resets_at": 1782378000})
+    st = r.status(now=102.0)
+    a = st["agents"][0]
+    assert a["context_pct"] == 35
+    assert a["context_tokens"] == 351590
+    assert a["context_size"] == 1000000
+    assert st["limits"]["five_hour"] == {"used_percentage": 38, "resets_at": 1781798400}
+    assert st["limits"]["seven_day"]["used_percentage"] == 5
+
+
+def test_status_without_usage_is_null():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=1.0)
+    st = r.status(now=1.0)
+    assert st["agents"][0]["context_pct"] is None
+    assert st["limits"] is None
+
+
+def test_gc_drops_stale_usage():
+    r = SessionRegistry()
+    r.update("s1", "p", "running", now=0.0)
+    r.update_usage("s1", now=0.0, context_pct=10)
+    r.gc(now=2000.0, idle_timeout=100.0)
+    assert "s1" not in r._usage
+
+
 def test_gc_removes_stale_only():
     r = SessionRegistry()
     r.update("old", "p1", "running", now=0.0)
